@@ -40,6 +40,8 @@ type InfrastructureSection = {
   name: string;
   title: string;
   description?: string | null;
+  image?: string | null;
+  image_url?: string | null;
   is_active: boolean;
   settings?: InfrastructureSettings | [];
 };
@@ -217,6 +219,8 @@ export function InfrastructurePage() {
   return (
     <>
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={banner?.title || page?.title || "Infrastructure"}
         description={plainText(banner?.description) || "Purpose-built spaces that make every school day richer, safer and more inspiring."}
       />

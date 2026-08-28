@@ -1,4 +1,4 @@
-﻿import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Images } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -19,6 +19,8 @@ type GalleryCategory = {
 type GallerySection = {
   title?: string;
   description?: string | null;
+  image?: string | null;
+  image_url?: string | null;
   is_active: boolean;
 };
 
@@ -71,6 +73,8 @@ export function GalleryPage() {
   return (
     <>
       <PageBanner
+        image={data?.banner?.image}
+        imageUrl={data?.banner?.image_url}
         title={data?.banner?.title || data?.page.title || "Gallery"}
         description={plainText(data?.banner?.description)}
       />

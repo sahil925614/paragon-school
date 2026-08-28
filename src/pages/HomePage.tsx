@@ -23,7 +23,12 @@ import {
 
 import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { Link } from "react-router-dom";
 import { AwardsSlider, type AwardItem } from "../components/AwardsSlider";
 import { schoolApi } from "../features/school/api/schoolApi";
@@ -35,6 +40,7 @@ type HomeCard = {
   image?: string;
   image_url?: string;
   link_url?: string;
+  youtube_url?: string;
   quote?: string;
   name?: string;
   role?: string;
@@ -89,6 +95,8 @@ type Experience = {
 type ResultItem = {
   image: string;
   alt: string;
+  title?: string;
+  description?: string;
 };
 
 type ActivityVideo = {
@@ -210,10 +218,20 @@ const recentActivities: ActivityVideo[] = [
 export function HomePage() {
   const activitiesSliderRef = useRef<HTMLDivElement>(null);
   const activitySlideIndexRef = useRef(0);
+  const resultsSliderRef = useRef<HTMLDivElement>(null);
+  const resultDragStartXRef = useRef(0);
+  const resultDragStartScrollLeftRef = useRef(0);
+  const resultDraggingRef = useRef(false);
+  const resultDidDragRef = useRef(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [resultLightboxIndex, setResultLightboxIndex] = useState<number | null>(null);
+  const [resultLightboxIndex, setResultLightboxIndex] = useState<number | null>(
+    null,
+  );
   const [activitiesPaused, setActivitiesPaused] = useState(false);
-  const { data: homePage } = useQuery({
+  const [isResultsDragging, setIsResultsDragging] = useState(false);
+  const [resultsPaused, setResultsPaused] = useState(false);
+  const [loadedHeroImageUrl, setLoadedHeroImageUrl] = useState<string>();
+  const { data: homePage, isPending: isHomePagePending } = useQuery({
     queryKey: ["school-home"],
     queryFn: async () => {
       const response = await schoolApi.get<{ data: HomePageData }>("home");
@@ -224,6 +242,12 @@ export function HomePage() {
   const section = (type: string) =>
     homePage?.sections.find((item) => item.type === type && item.is_active);
   const banner = section("home_banner");
+  const backendHeroImageUrl = resolveMediaUrl(banner?.image, banner?.image_url);
+  const heroImageUrl =
+    backendHeroImageUrl ||
+    (!isHomePagePending ? "/images/paragon-school.webp" : undefined);
+  const heroImageLoaded =
+    Boolean(heroImageUrl) && loadedHeroImageUrl === heroImageUrl;
   const welcome = section("home_welcome");
   const awardsSection = section("home_awards");
   const featuresSection = section("home_features");
@@ -254,6 +278,8 @@ export function HomePage() {
           resolveMediaUrl(card.image, card.image_url) ||
           results[index % results.length].image,
         alt: card.title || `Paragon School result ${index + 1}`,
+        title: card.title?.trim() || undefined,
+        description: card.description?.trim() || undefined,
       }))
     : results;
   const apiAwards = cardsFor(awardsSection);
@@ -301,7 +327,7 @@ export function HomePage() {
         image:
           resolveMediaUrl(card.image, card.image_url) ||
           recentActivities[index % recentActivities.length].image,
-        url: card.link_url || "#",
+        url: card.youtube_url || card.link_url || "#",
       }))
     : recentActivities;
   const welcomeParts = (welcome?.description || "").split(/(?=The challenge)/);
@@ -335,7 +361,9 @@ export function HomePage() {
       if (event.key === "Escape") setResultLightboxIndex(null);
       if (event.key === "ArrowLeft") {
         setResultLightboxIndex((current) =>
-          current === null ? null : (current - 1 + displayedResults.length) % displayedResults.length,
+          current === null
+            ? null
+            : (current - 1 + displayedResults.length) % displayedResults.length,
         );
       }
       if (event.key === "ArrowRight") {
@@ -361,6 +389,91 @@ export function HomePage() {
     );
   };
 
+  const scrollResults = (direction: number) => {
+    const slider = resultsSliderRef.current;
+    if (!slider) return;
+
+    const maxScroll = slider.scrollWidth - slider.clientWidth;
+    const reachedEnd = direction > 0 && slider.scrollLeft >= maxScroll - 4;
+    const reachedStart = direction < 0 && slider.scrollLeft <= 4;
+
+    if (reachedEnd || reachedStart) {
+      slider.scrollTo({
+        left: reachedEnd ? 0 : maxScroll,
+        behavior: "smooth",
+      });
+      return;
+    }
+
+    slider.scrollBy({
+      left: slider.clientWidth * 0.82 * direction,
+      behavior: "smooth",
+    });
+  };
+
+  const startResultsDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== "mouse" || event.button !== 0) return;
+
+    const slider = resultsSliderRef.current;
+    if (!slider) return;
+
+    resultDraggingRef.current = true;
+    resultDidDragRef.current = false;
+    resultDragStartXRef.current = event.clientX;
+    resultDragStartScrollLeftRef.current = slider.scrollLeft;
+  };
+
+  const moveResultsDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!resultDraggingRef.current) return;
+
+    const slider = resultsSliderRef.current;
+    if (!slider) return;
+
+    const distance = event.clientX - resultDragStartXRef.current;
+    if (Math.abs(distance) <= 5) return;
+
+    if (!resultDidDragRef.current) {
+      resultDidDragRef.current = true;
+      slider.setPointerCapture(event.pointerId);
+      setIsResultsDragging(true);
+    }
+
+    slider.scrollLeft = resultDragStartScrollLeftRef.current - distance;
+  };
+
+  const stopResultsDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!resultDraggingRef.current) return;
+
+    resultDraggingRef.current = false;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setIsResultsDragging(false);
+  };
+
+  useEffect(() => {
+    if (resultsPaused || isResultsDragging || displayedResults.length <= 1) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      const slider = resultsSliderRef.current;
+      if (!slider) return;
+
+      const maxScroll = slider.scrollWidth - slider.clientWidth;
+      if (slider.scrollLeft >= maxScroll - 4) {
+        slider.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        slider.scrollBy({
+          left: slider.clientWidth * 0.82,
+          behavior: "smooth",
+        });
+      }
+    }, 4500);
+
+    return () => window.clearInterval(timer);
+  }, [displayedResults.length, isResultsDragging, resultsPaused]);
+
   const scrollActivities = (direction: number) => {
     const slider = activitiesSliderRef.current;
     if (!slider || slider.children.length === 0) return;
@@ -368,8 +481,13 @@ export function HomePage() {
     const totalSlides = slider.children.length;
     activitySlideIndexRef.current =
       (activitySlideIndexRef.current + direction + totalSlides) % totalSlides;
-    const target = slider.children[activitySlideIndexRef.current] as HTMLElement;
-    slider.scrollTo({ left: target.offsetLeft - slider.offsetLeft, behavior: "smooth" });
+    const target = slider.children[
+      activitySlideIndexRef.current
+    ] as HTMLElement;
+    slider.scrollTo({
+      left: target.offsetLeft - slider.offsetLeft,
+      behavior: "smooth",
+    });
   };
 
   useEffect(() => {
@@ -390,13 +508,12 @@ export function HomePage() {
       BACKGROUND IMAGE
   ===================================================== */}
 
-        <img
-          src={
-            resolveMediaUrl(banner?.image, banner?.image_url) ||
-            "/images/paragon-school.webp"
-          }
-          alt="Paragon Senior Secondary School"
-          className="
+        {heroImageUrl && (
+          <img
+            src={heroImageUrl}
+            alt="Paragon Senior Secondary School"
+            onLoad={() => setLoadedHeroImageUrl(heroImageUrl)}
+            className={`
       absolute
       inset-0
       -z-20
@@ -404,12 +521,27 @@ export function HomePage() {
       w-full
       object-cover
 
+      transition-opacity
+      duration-500
+
       object-[62%_center]
-      sm:object-[58%_center]
+      sm:object-[62%_center]
       md:object-center
       lg:object-center
-    "
-        />
+      ${heroImageLoaded ? "opacity-100" : "opacity-0"}
+    `}
+          />
+        )}
+
+        {!heroImageLoaded && (
+          <div
+            className="absolute inset-0 -z-20 flex items-center justify-center bg-navy"
+            role="status"
+            aria-label="Loading banner image"
+          >
+            <span className="size-8 animate-spin rounded-full border-2 border-white/25 border-t-gold" />
+          </div>
+        )}
 
         {/* =====================================================
       MOBILE OVERLAY
@@ -1186,25 +1318,72 @@ export function HomePage() {
               </h2>
             </div>
 
-            <div className="flex w-fit items-center gap-3 rounded-full border border-navy/10 bg-white px-4 py-2.5 shadow-sm">
-              <span className="grid size-8 place-items-center rounded-full bg-[#c72c3b] text-[10px] font-bold text-white">
-                {String(displayedResults.length).padStart(2, "0")}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-[.16em] text-slate-500">
-                Result highlights
-              </span>
+            <div className="flex w-fit items-center gap-3">
+              <div className="flex items-center gap-3 rounded-full border border-navy/10 bg-white px-4 py-2.5 shadow-sm">
+                <span className="grid size-8 place-items-center rounded-full bg-[#c72c3b] text-[10px] font-bold text-white">
+                  {String(displayedResults.length).padStart(2, "0")}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-[.16em] text-slate-500">
+                  Result highlights
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => scrollResults(-1)}
+                  aria-label="Previous results"
+                  className="grid size-11 place-items-center rounded-full border border-navy/15 bg-white text-navy shadow-sm transition hover:-translate-y-0.5 hover:border-[#c72c3b] hover:bg-[#c72c3b] hover:text-white"
+                >
+                  <ChevronLeft size={19} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollResults(1)}
+                  aria-label="Next results"
+                  className="grid size-11 place-items-center rounded-full bg-navy text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#c72c3b]"
+                >
+                  <ChevronRight size={19} />
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:mt-12 lg:grid-cols-4 lg:gap-6 xl:grid-cols-5">
+          <div
+            ref={resultsSliderRef}
+            onPointerDown={startResultsDrag}
+            onPointerMove={moveResultsDrag}
+            onPointerUp={stopResultsDrag}
+            onPointerCancel={stopResultsDrag}
+            onMouseEnter={() => setResultsPaused(true)}
+            onMouseLeave={() => setResultsPaused(false)}
+            onFocusCapture={() => setResultsPaused(true)}
+            onBlurCapture={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) {
+                setResultsPaused(false);
+              }
+            }}
+            className={`mt-10 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-5 lg:mt-12 lg:gap-6 ${
+              isResultsDragging
+                ? "cursor-grabbing scroll-auto select-none"
+                : "cursor-grab scroll-smooth"
+            }`}
+          >
             {displayedResults.map((result, index) => (
               <button
                 type="button"
                 key={`${result.image}-${index}`}
-                onClick={() => setResultLightboxIndex(index)}
+                onClick={() => {
+                  if (resultDidDragRef.current) {
+                    resultDidDragRef.current = false;
+                    return;
+                  }
+                  setResultLightboxIndex(index);
+                }}
                 aria-label={`Open ${result.alt} in image viewer`}
-                className={`group relative text-left transition duration-500 hover:-translate-y-1.5 ${
-                  index % 2 === 1 ? "lg:translate-y-5 lg:hover:translate-y-3.5" : ""
+                className={`group relative w-[78%] shrink-0 snap-start text-left transition duration-500 hover:-translate-y-1.5 sm:w-[46%] md:w-[calc((100%-2.5rem)/3)] lg:w-[calc((100%-4.5rem)/4)] xl:w-[calc((100%-6rem)/5)] ${
+                  index % 2 === 1
+                    ? "lg:translate-y-5 lg:hover:translate-y-3.5"
+                    : ""
                 }`}
               >
                 <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-[22px] bg-navy/[.06] transition-transform duration-500 group-hover:translate-x-2 group-hover:translate-y-2" />
@@ -1214,12 +1393,27 @@ export function HomePage() {
                       src={result.image}
                       alt={result.alt}
                       loading={index < 5 ? "eager" : "lazy"}
-                      className="aspect-square w-full object-cover transition duration-700 ease-out group-hover:scale-[1.035]"
+                      draggable={false}
+                      className="aspect-square w-full select-none object-cover transition duration-700 ease-out group-hover:scale-[1.035]"
                     />
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-navy/35 to-transparent opacity-0 transition duration-300 group-hover:opacity-100" />
-                    <span className="absolute bottom-2.5 right-2.5 grid size-8 place-items-center rounded-full border border-white/60 bg-white/95 text-[9px] font-black text-navy shadow-md backdrop-blur-sm sm:bottom-3 sm:right-3 sm:size-9">
+                    <span className="absolute bottom-2.5 right-2.5 z-20 grid size-8 place-items-center rounded-full border border-white/60 bg-white/95 text-[9px] font-black text-navy shadow-md backdrop-blur-sm sm:bottom-3 sm:right-3 sm:size-9">
                       {String(index + 1).padStart(2, "0")}
                     </span>
+                    {(result.title || result.description) && (
+                      <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-navy via-navy/90 to-transparent px-4 pb-4 pr-14 pt-16 text-white sm:px-5 sm:pb-5 sm:pr-16">
+                        {result.title && (
+                          <h3 className="line-clamp-2 font-serif text-xl leading-tight sm:text-2xl">
+                            {result.title}
+                          </h3>
+                        )}
+                        {result.description && (
+                          <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-white/80 sm:text-sm">
+                            {result.description}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </button>
@@ -1233,61 +1427,72 @@ export function HomePage() {
           </div>
         </div>
       </section>
-      {resultLightboxIndex !== null && displayedResults[resultLightboxIndex] && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Result image viewer"
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/85 p-3 backdrop-blur-sm sm:p-6"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setResultLightboxIndex(null);
-          }}
-        >
-          <div className="absolute left-4 right-4 top-4 z-20 flex items-center justify-between sm:left-6 sm:right-6 sm:top-6">
-            <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-white backdrop-blur-md">
-              {resultLightboxIndex + 1} / {displayedResults.length}
-            </span>
-            <button
-              type="button"
-              onClick={() => setResultLightboxIndex(null)}
-              aria-label="Close result image viewer"
-              className="grid size-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:rotate-90 hover:bg-white hover:text-navy"
-            >
-              <X size={21} />
-            </button>
+      {resultLightboxIndex !== null &&
+        displayedResults[resultLightboxIndex] && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Result image viewer"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/85 p-3 backdrop-blur-sm sm:p-6"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget)
+                setResultLightboxIndex(null);
+            }}
+          >
+            <div className="absolute left-4 right-4 top-4 z-20 flex items-center justify-between sm:left-6 sm:right-6 sm:top-6">
+              <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-white backdrop-blur-md">
+                {resultLightboxIndex + 1} / {displayedResults.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => setResultLightboxIndex(null)}
+                aria-label="Close result image viewer"
+                className="grid size-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:rotate-90 hover:bg-white hover:text-navy"
+              >
+                <X size={21} />
+              </button>
+            </div>
+
+            {displayedResults.length > 1 && (
+              <button
+                type="button"
+                onClick={() =>
+                  setResultLightboxIndex(
+                    (resultLightboxIndex - 1 + displayedResults.length) %
+                      displayedResults.length,
+                  )
+                }
+                aria-label="View previous result"
+                className="absolute left-3 z-20 grid size-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:bg-white hover:text-navy sm:left-6 sm:size-12"
+              >
+                <ChevronLeft size={23} />
+              </button>
+            )}
+
+            <div className="flex max-h-[calc(100vh-6rem)] max-w-[min(92vw,900px)] items-center justify-center overflow-hidden rounded-[22px] bg-white p-2 shadow-[0_30px_100px_rgba(0,0,0,.45)] sm:p-3">
+              <img
+                src={displayedResults[resultLightboxIndex].image}
+                alt={displayedResults[resultLightboxIndex].alt}
+                className="max-h-[calc(100vh-7.5rem)] max-w-full rounded-[16px] object-contain"
+              />
+            </div>
+
+            {displayedResults.length > 1 && (
+              <button
+                type="button"
+                onClick={() =>
+                  setResultLightboxIndex(
+                    (resultLightboxIndex + 1) % displayedResults.length,
+                  )
+                }
+                aria-label="View next result"
+                className="absolute right-3 z-20 grid size-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:bg-white hover:text-navy sm:right-6 sm:size-12"
+              >
+                <ChevronRight size={23} />
+              </button>
+            )}
           </div>
-
-          {displayedResults.length > 1 && (
-            <button
-              type="button"
-              onClick={() => setResultLightboxIndex((resultLightboxIndex - 1 + displayedResults.length) % displayedResults.length)}
-              aria-label="View previous result"
-              className="absolute left-3 z-20 grid size-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:bg-white hover:text-navy sm:left-6 sm:size-12"
-            >
-              <ChevronLeft size={23} />
-            </button>
-          )}
-
-          <div className="flex max-h-[calc(100vh-6rem)] max-w-[min(92vw,900px)] items-center justify-center overflow-hidden rounded-[22px] bg-white p-2 shadow-[0_30px_100px_rgba(0,0,0,.45)] sm:p-3">
-            <img
-              src={displayedResults[resultLightboxIndex].image}
-              alt={displayedResults[resultLightboxIndex].alt}
-              className="max-h-[calc(100vh-7.5rem)] max-w-full rounded-[16px] object-contain"
-            />
-          </div>
-
-          {displayedResults.length > 1 && (
-            <button
-              type="button"
-              onClick={() => setResultLightboxIndex((resultLightboxIndex + 1) % displayedResults.length)}
-              aria-label="View next result"
-              className="absolute right-3 z-20 grid size-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:bg-white hover:text-navy sm:right-6 sm:size-12"
-            >
-              <ChevronRight size={23} />
-            </button>
-          )}
-        </div>
-      )}
+        )}
       {/* =====================================================
           ADMISSION CTA
       ====================================================== */}
@@ -1505,7 +1710,8 @@ export function HomePage() {
             lg:text-[11px]
           "
               >
-                {cta?.title || "Admissions 2026-27"}
+                {/* {cta?.title || "Admissions 2026-27"} */}
+                {"Begin Your Journey With Us"}
               </p>
 
               <span
@@ -1595,7 +1801,8 @@ export function HomePage() {
         "
             >
               <Link
-                to="/school/admission"
+                to={cta?.button_url || "/school/admission"}
+                target="_blank"
                 className="
             group
             relative
@@ -1913,7 +2120,8 @@ export function HomePage() {
             onMouseLeave={() => setActivitiesPaused(false)}
             onFocusCapture={() => setActivitiesPaused(true)}
             onBlurCapture={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget)) setActivitiesPaused(false);
+              if (!event.currentTarget.contains(event.relatedTarget))
+                setActivitiesPaused(false);
             }}
             className="mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto pb-5 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mt-12 sm:gap-6"
           >
@@ -1988,15 +2196,13 @@ export function HomePage() {
               <span className="grid size-13 place-items-center rounded-2xl bg-[#c72c3b] text-white shadow-lg">
                 <BookOpenCheck size={24} strokeWidth={1.8} />
               </span>
-              <p className="mt-7 text-[10px] font-bold uppercase tracking-[.22em] text-[#c72c3b]">
-                {yearBook?.description || "School Publication"}
-              </p>
+              
               <h2 className="mt-4 font-serif text-4xl leading-tight text-navy sm:text-5xl">
                 {yearBook?.title || "E-Year Book 2025-26"}
               </h2>
               <div className="mt-6 h-px w-12 bg-[#c72c3b]" />
-              <p className="mt-6 text-sm leading-7 text-slate-600 sm:text-base">
-                Explore the latest digital year book and revisit the memories, milestones, and achievements from across the school year.
+             <p className="mt-7 text-[10px] font-bold uppercase tracking-[.22em] text-[#c72c3b]">
+                {yearBook?.description || "School Publication"}
               </p>
               <a
                 href={yearBookUrl}
@@ -2004,7 +2210,7 @@ export function HomePage() {
                 rel="noreferrer"
                 className="mt-7 inline-flex items-center gap-3 rounded-full bg-navy px-5 py-3 text-xs font-bold uppercase tracking-[.12em] text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#c72c3b]"
               >
-                Open full publication
+               {yearBook?.button_text}
                 <ArrowRight size={16} />
               </a>
             </div>
@@ -2013,10 +2219,10 @@ export function HomePage() {
               <div className="absolute -inset-3 rounded-[30px] border border-navy/[.07] sm:-inset-4" />
               <div className="relative overflow-hidden rounded-[26px] border border-slate-200 bg-white p-2 shadow-[0_30px_90px_-40px_rgba(16,42,67,.5)] sm:p-3">
                 <div className="absolute left-1/2 top-0 z-10 h-1.5 w-24 -translate-x-1/2 rounded-b-full bg-[#c72c3b]" />
-                <iframe
-                  src={yearBookUrl}
+                <YearBookPreview
+                  key={yearBookUrl}
+                  url={yearBookUrl}
                   title="Paragon School E-Year Book 2025-26"
-                  className="h-[500px] w-full rounded-[18px] border-0 sm:h-[650px] lg:h-[760px]"
                 />
               </div>
             </div>
@@ -2027,6 +2233,167 @@ export function HomePage() {
   );
 }
 
+type YearBookPreviewProps = {
+  url: string;
+  title: string;
+};
+
+function YearBookPreview({ url, title }: YearBookPreviewProps) {
+  const [progress, setProgress] = useState(4);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [previewAttempt, setPreviewAttempt] = useState(0);
+  const viewerShellLoadedRef = useRef(false);
+  const minimumWaitFinishedRef = useRef(false);
+  const completionStartedRef = useRef(false);
+  const completionTimerRef = useRef<number | null>(null);
+
+  const completeLoading = () => {
+    if (
+      completionStartedRef.current ||
+      !viewerShellLoadedRef.current ||
+      !minimumWaitFinishedRef.current
+    ) {
+      return;
+    }
+
+    completionStartedRef.current = true;
+    setProgress(100);
+    completionTimerRef.current = window.setTimeout(() => {
+      setIsLoaded(true);
+    }, 650);
+  };
+
+  useEffect(() => {
+    const progressTimer = window.setInterval(() => {
+      setProgress((current) => {
+        if (current >= 94) return current;
+        if (current < 35) return Math.min(current + 5, 94);
+        if (current < 70) return Math.min(current + 2, 94);
+        return Math.min(current + 1, 94);
+      });
+    }, 420);
+
+    const minimumWaitTimer = window.setTimeout(() => {
+      minimumWaitFinishedRef.current = true;
+
+      if (viewerShellLoadedRef.current && !completionStartedRef.current) {
+        completionStartedRef.current = true;
+        setProgress(100);
+        completionTimerRef.current = window.setTimeout(() => {
+          setIsLoaded(true);
+        }, 650);
+      }
+    }, 12000);
+
+    return () => {
+      window.clearInterval(progressTimer);
+      window.clearTimeout(minimumWaitTimer);
+      if (completionTimerRef.current !== null) {
+        window.clearTimeout(completionTimerRef.current);
+      }
+    };
+  }, [previewAttempt]);
+
+  const handleLoad = () => {
+    viewerShellLoadedRef.current = true;
+    completeLoading();
+  };
+
+  const retryPreview = () => {
+    if (completionTimerRef.current !== null) {
+      window.clearTimeout(completionTimerRef.current);
+    }
+
+    viewerShellLoadedRef.current = false;
+    minimumWaitFinishedRef.current = false;
+    completionStartedRef.current = false;
+    completionTimerRef.current = null;
+    setProgress(4);
+    setIsLoaded(false);
+    setPreviewAttempt((current) => current + 1);
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-[18px] bg-slate-100">
+      {!isLoaded && (
+        <div
+          className="absolute inset-0 z-20 grid place-items-center bg-[#f5f7f8] px-6"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="w-full max-w-sm text-center">
+            <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-navy text-white shadow-lg">
+              <BookOpenCheck size={24} strokeWidth={1.8} />
+            </span>
+
+            <p className="mt-5 text-[10px] font-bold uppercase tracking-[.2em] text-[#c72c3b]">
+              Preparing publication
+            </p>
+
+            <p className="mt-3 font-serif text-3xl text-navy">{progress}%</p>
+
+            <div
+              className="mt-5 h-2 overflow-hidden rounded-full bg-navy/10"
+              role="progressbar"
+              aria-label="Loading E-Year Book"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progress}
+            >
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#c72c3b] via-[#df4756] to-gold transition-[width] duration-300 ease-out"
+                style={{ width: progress + "%" }}
+              />
+            </div>
+
+            <p className="mt-4 text-xs leading-5 text-slate-500">
+              This is a large publication. Preparing the PDF viewer may take a
+              moment.
+            </p>
+
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.12em] text-navy underline decoration-[#c72c3b]/40 underline-offset-4"
+            >
+              Open directly instead
+              <ArrowRight size={14} />
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* {isLoaded && (
+        <div className="absolute bottom-4 right-4 z-10 flex gap-2">
+          <button
+            type="button"
+            onClick={retryPreview}
+            className="rounded-full border border-white/30 bg-navy/90 px-4 py-2 text-[10px] font-bold uppercase tracking-[.12em] text-white shadow-lg backdrop-blur transition hover:bg-[#c72c3b]"
+          >
+            Reload preview
+          </button>
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-[.12em] text-navy shadow-lg transition hover:bg-[#c72c3b] hover:text-white"
+          >
+            Open publication
+          </a>
+        </div>
+      )} */}
+
+      <iframe
+        key={previewAttempt}
+        src={url}
+        title={title}
+        onLoad={handleLoad}
+        className="h-[500px] w-full border-0 sm:h-[650px] lg:h-[760px]"
+      />
+    </div>
+  );
+}
 /* =========================================================
    HERO STAT
 ========================================================= */

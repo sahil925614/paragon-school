@@ -71,16 +71,15 @@ export function HistoryLegacyPage() {
 
   return (
     <AboutDetailPage
+      bannerImage={banner?.image}
+      bannerImageUrl={banner?.image_url}
       title={history?.title || banner?.title || page?.title || "History and Legacy"}
       description={
         plainText(banner?.description) ||
         "Explore the journey and enduring legacy of Paragon School."
       }
       eyebrow={history?.name || "Our story"}
-      introduction={
-        plainText(banner?.description) ||
-        "More than four decades of learning, values and purposeful growth."
-      }
+      introduction="A journey of educational purpose, enduring values and meaningful progress since 1981."
       paragraphs={paragraphs.length ? paragraphs : fallbackParagraphs}
       image={
         mediaUrl(history?.image, history?.image_url) ||

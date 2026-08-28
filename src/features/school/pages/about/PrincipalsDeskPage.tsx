@@ -96,6 +96,8 @@ export function PrincipalsDeskPage() {
 
   return (
     <AboutDetailPage
+      bannerImage={banner?.image}
+      bannerImageUrl={banner?.image_url}
       title={banner?.title || page?.title || "Principal's Desk"}
       description={
         plainText(banner?.description) ||

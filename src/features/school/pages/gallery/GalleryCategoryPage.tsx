@@ -1,6 +1,15 @@
-﻿import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Camera, ChevronRight, Home, Images } from "lucide-react";
-import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  ArrowLeft,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Images,
+  X,
+  ZoomIn,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 
 import { schoolApi } from "../../api/schoolApi";
@@ -57,6 +66,7 @@ function plainText(html?: string | null) {
 
 export function GalleryCategoryPage() {
   const { categorySlug } = useParams();
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const { data, isError } = useQuery({
     queryKey: ["school-gallery-category", categorySlug],
     queryFn: async () => {
@@ -77,10 +87,49 @@ export function GalleryCategoryPage() {
     mediaUrl(data?.banner?.image, data?.banner?.image_url) ||
     mediaUrl(data?.content?.image, data?.content?.image_url) ||
     firstPhoto;
+  const galleryPhotos = albums.flatMap((album) =>
+    (album.images ?? [])
+      .map((image) => mediaUrl(image.image, image.image_url))
+      .filter((image): image is string => Boolean(image))
+      .map((image, photoIndex) => ({
+        image,
+        albumTitle: album.title,
+        photoIndex,
+      })),
+  );
 
   useEffect(() => {
     applyPageSeo(data?.page.seo);
   }, [data]);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLightboxIndex(null);
+      if (event.key === "ArrowLeft") {
+        setLightboxIndex((current) =>
+          current === null
+            ? null
+            : (current - 1 + galleryPhotos.length) % galleryPhotos.length,
+        );
+      }
+      if (event.key === "ArrowRight") {
+        setLightboxIndex((current) =>
+          current === null ? null : (current + 1) % galleryPhotos.length,
+        );
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [galleryPhotos.length, lightboxIndex]);
 
   if (!categorySlug || isError) {
     return <Navigate replace to="/school/gallery" />;
@@ -143,15 +192,23 @@ export function GalleryCategoryPage() {
                 .filter((image): image is string => Boolean(image));
 
               return (
-                <article key={`${album.title}-${albumIndex}`}>
+                <article
+                  key={`${album.title}-${albumIndex}`}
+                  className="relative rounded-[28px] border border-slate-200/80 bg-white/70 p-4 shadow-[0_24px_70px_-52px_rgba(16,42,67,.5)] sm:p-6"
+                >
                   <div className="mb-6 flex flex-col justify-between gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#c72c3b]">
-                        Album {String(albumIndex + 1).padStart(2, "0")}
+                    <div className="flex items-start gap-4">
+                      <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-navy font-serif text-lg text-white shadow-md">
+                        {String(albumIndex + 1).padStart(2, "0")}
                       </span>
-                      <h3 className="mt-2 font-serif text-2xl text-navy sm:text-3xl">
-                        {album.title}
-                      </h3>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#c72c3b]">
+                          Photo album
+                        </span>
+                        <h3 className="mt-2 font-serif text-2xl text-navy sm:text-3xl">
+                          {album.title}
+                        </h3>
+                      </div>
                     </div>
                     <p className="text-sm font-semibold text-slate-500">
                       {photos.length} {photos.length === 1 ? "photograph" : "photographs"}
@@ -160,13 +217,21 @@ export function GalleryCategoryPage() {
 
                   <div className="grid auto-rows-[220px] gap-4 sm:grid-cols-2 sm:auto-rows-[260px] lg:grid-cols-3">
                     {photos.map((photo, photoIndex) => (
-                      <a
+                      <button
+                        type="button"
                         key={`${photo}-${photoIndex}`}
-                        href={photo}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label={`Open ${album.title} photograph ${photoIndex + 1}`}
-                        className={`group relative overflow-hidden rounded-[18px] bg-slate-200 shadow-sm ${
+                        onClick={() =>
+                          setLightboxIndex(
+                            galleryPhotos.findIndex(
+                              (item) =>
+                                item.image === photo &&
+                                item.albumTitle === album.title &&
+                                item.photoIndex === photoIndex,
+                            ),
+                          )
+                        }
+                        aria-label={`View ${album.title} photograph ${photoIndex + 1}`}
+                        className={`group relative cursor-zoom-in overflow-hidden rounded-[18px] bg-slate-200 text-left shadow-sm ring-1 ring-navy/5 transition duration-300 hover:-translate-y-1 hover:shadow-xl ${
                           photoIndex === 0 ? "sm:row-span-2" : ""
                         } ${photoIndex === 3 ? "lg:col-span-2" : ""}`}
                       >
@@ -178,9 +243,9 @@ export function GalleryCategoryPage() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-navy/45 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
                         <span className="absolute bottom-4 right-4 grid size-9 translate-y-2 place-items-center rounded-full bg-white text-navy opacity-0 shadow-lg transition group-hover:translate-y-0 group-hover:opacity-100">
-                          <Camera size={16} />
+                          <ZoomIn size={16} />
                         </span>
-                      </a>
+                      </button>
                     ))}
                   </div>
                 </article>
@@ -199,6 +264,71 @@ export function GalleryCategoryPage() {
           </Link>
         </div>
       </section>
+
+      {lightboxIndex !== null && galleryPhotos[lightboxIndex] && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${galleryPhotos[lightboxIndex].albumTitle} image viewer`}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#061426]/95 p-4 backdrop-blur-md sm:p-8"
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target) setLightboxIndex(null);
+          }}
+        >
+          <div className="absolute left-4 top-4 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[.14em] text-white sm:left-8 sm:top-8">
+            {String(lightboxIndex + 1).padStart(2, "0")} /{" "}
+            {String(galleryPhotos.length).padStart(2, "0")}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setLightboxIndex(null)}
+            aria-label="Close image viewer"
+            className="absolute right-4 top-4 z-10 grid size-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white hover:text-navy sm:right-8 sm:top-8"
+          >
+            <X size={20} />
+          </button>
+
+          {galleryPhotos.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() =>
+                  setLightboxIndex(
+                    (lightboxIndex - 1 + galleryPhotos.length) %
+                      galleryPhotos.length,
+                  )
+                }
+                aria-label="Previous photograph"
+                className="absolute bottom-5 left-[calc(50%-3.25rem)] z-10 grid size-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white hover:text-navy sm:bottom-auto sm:left-8 sm:top-1/2 sm:-translate-y-1/2"
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setLightboxIndex((lightboxIndex + 1) % galleryPhotos.length)
+                }
+                aria-label="Next photograph"
+                className="absolute bottom-5 right-[calc(50%-3.25rem)] z-10 grid size-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white hover:text-navy sm:bottom-auto sm:right-8 sm:top-1/2 sm:-translate-y-1/2"
+              >
+                <ChevronRight size={22} />
+              </button>
+            </>
+          )}
+
+          <figure className="flex max-h-[calc(100vh-8rem)] max-w-6xl flex-col overflow-hidden rounded-[22px] bg-white p-2 shadow-2xl sm:p-3">
+            <img
+              src={galleryPhotos[lightboxIndex].image}
+              alt={`${galleryPhotos[lightboxIndex].albumTitle} photograph ${galleryPhotos[lightboxIndex].photoIndex + 1}`}
+              className="min-h-0 max-h-[calc(100vh-12rem)] max-w-full rounded-[16px] object-contain"
+            />
+            <figcaption className="shrink-0 px-4 py-3 text-center font-serif text-base text-navy sm:text-lg">
+              {galleryPhotos[lightboxIndex].albumTitle}
+            </figcaption>
+          </figure>
+        </div>
+      )}
     </main>
   );
 }

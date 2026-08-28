@@ -1,4 +1,4 @@
-﻿import { ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
@@ -39,6 +39,8 @@ type AcademicsSection = {
   type: string;
   title: string;
   description?: string | null;
+  image?: string | null;
+  image_url?: string | null;
   is_active: boolean;
   settings?: AcademicsSettings | [];
 };
@@ -138,6 +140,8 @@ export function AcademicsPage() {
   return (
     <>
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={banner?.title || page?.title || "Academics"}
         description={plainText(banner?.description)}
       />

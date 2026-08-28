@@ -1,12 +1,102 @@
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import {
   ArrowRight,
   GraduationCap,
   Languages,
-  Sparkles,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
+type WelcomeSection = {
+  site: {
+    id: number;
+    name: string;
+    slug: string;
+    is_default: boolean;
+  };
+  settings: {
+    logo?: string | null;
+    logo_url?: string | null;
+    background_image?: string | null;
+    background_image_url?: string | null;
+    title?: string | null;
+    subtitle?: string | null;
+    description?: string | null;
+    button_text?: string | null;
+    button_url?: string | null;
+  };
+};
+
+type WelcomeResponse = {
+  data: {
+    sections: WelcomeSection[];
+  };
+};
+
+const welcomeApiUrl =
+  "https://lightskyblue-eland-620788.hostingersite.com/api/welcome";
+const storageBaseUrl =
+  "https://lightskyblue-eland-620788.hostingersite.com/storage/";
+
+function welcomeMediaUrl(
+  image?: string | null,
+  imageUrl?: string | null,
+) {
+  if (imageUrl && !imageUrl.includes("localhost")) return imageUrl;
+  if (image) return storageBaseUrl + image.replace(/^\/+/, "");
+  return undefined;
+}
+
+function selectorRoute(section: WelcomeSection | undefined, fallback: string) {
+  const url = section?.settings.button_url?.trim();
+
+  if (!url) return fallback;
+  if (url === "/paragon-senior-school") return "/school";
+  if (url === "/paragon-kids") return "/kids";
+
+  return url;
+}
+
 export function SchoolSelectorPage() {
+  const { data: welcomeSections = [] } = useQuery({
+    queryKey: ["welcome-sections"],
+    queryFn: async () => {
+      const response = await axios.get<WelcomeResponse>(welcomeApiUrl, {
+        headers: { Accept: "application/json" },
+        timeout: 15_000,
+      });
+
+      return response.data.data.sections;
+    },
+  });
+
+  const seniorSection = welcomeSections.find(
+    (section) =>
+      section.site.slug === "paragon-senior-school" || section.site.is_default,
+  );
+  const kidsSection = welcomeSections.find(
+    (section) => section.site.slug === "paragon-kids",
+  );
+  const senior = seniorSection?.settings;
+  const kids = kidsSection?.settings;
+  const seniorRoute = selectorRoute(seniorSection, "/school");
+  const kidsRoute = selectorRoute(kidsSection, "/kids");
+  const seniorLogo =
+    welcomeMediaUrl(senior?.logo, senior?.logo_url) ||
+    "/images/paragon-school-logo.webp";
+  const kidsLogo =
+    welcomeMediaUrl(kids?.logo, kids?.logo_url) ||
+    "/images/paragon-kids-logo.webp";
+  const seniorBackgroundFromApi = welcomeMediaUrl(
+    senior?.background_image,
+    senior?.background_image_url,
+  );
+  const seniorBackground =
+    seniorBackgroundFromApi || "/images/paragonmohali_bg.jpg";
+  const kidsBackground = welcomeMediaUrl(
+    kids?.background_image,
+    kids?.background_image_url,
+  );
   return (
     <>
       <main className="paragon-entry relative min-h-screen overflow-hidden bg-[#071b34]">
@@ -92,7 +182,7 @@ export function SchoolSelectorPage() {
           ====================================================== */}
 
           <Link
-            to="/school"
+            to={seniorRoute}
             className="
               entry-panel
               entry-senior
@@ -114,7 +204,7 @@ export function SchoolSelectorPage() {
 
             <div className="absolute inset-0">
               <img
-                src="/images/paragonmohali_bg.jpg"
+                src={seniorBackground}
                 alt=""
                 aria-hidden="true"
                 className="
@@ -218,8 +308,8 @@ export function SchoolSelectorPage() {
               "
             >
               <img
-                src="/images/paragon-school-logo.webp"
-                alt="Paragon Senior Secondary School"
+                src={seniorLogo}
+                alt={senior?.title?.trim() || "Paragon Senior Secondary School"}
                 className="
                   h-[72px]
                   w-auto
@@ -243,6 +333,7 @@ export function SchoolSelectorPage() {
                 overflow-hidden
               "
             >
+              {!seniorBackgroundFromApi && (
               <img
                 src="/images/para-students.png"
                 alt=""
@@ -263,6 +354,7 @@ export function SchoolSelectorPage() {
                   group-hover:scale-[1.045]
                 "
               />
+              )}
             </div>
 
             {/* lower readability gradient */}
@@ -325,7 +417,7 @@ export function SchoolSelectorPage() {
                     text-white/75
                   "
                 >
-                  Grades IX – XII
+                  {senior?.subtitle?.trim() || "Grades IX – XII"}
                 </span>
               </div>
 
@@ -341,9 +433,13 @@ export function SchoolSelectorPage() {
                   xl:text-[54px]
                 "
               >
-                Paragon Senior
-                <br />
-                Secondary School
+                {senior?.title?.trim() || (
+                  <>
+                    Paragon Senior
+                    <br />
+                    Secondary School
+                  </>
+                )}
               </h1>
 
               <p
@@ -356,8 +452,8 @@ export function SchoolSelectorPage() {
                   xl:text-sm
                 "
               >
-                Building knowledge, character and confidence for
-                tomorrow's leaders.
+                {senior?.description?.trim() ||
+                  "Building knowledge, character and confidence for tomorrow's leaders."}
               </p>
 
               <div className="mt-7 flex items-center gap-4">
@@ -381,7 +477,7 @@ export function SchoolSelectorPage() {
                     group-hover:bg-[#e4b34d]
                   "
                 >
-                  Enter Senior School
+                  {senior?.button_text?.trim() || "Enter Senior School"}
 
                   <ArrowRight
                     size={16}
@@ -419,7 +515,7 @@ export function SchoolSelectorPage() {
           ====================================================== */}
 
           <Link
-            to="/kids"
+            to={kidsRoute}
             className="
               entry-panel
               entry-kids
@@ -438,13 +534,25 @@ export function SchoolSelectorPage() {
           >
             {/* background */}
 
-            <div
-              className="
-                absolute
-                inset-0
-                bg-[linear-gradient(145deg,#fffdf6_0%,#fff5d6_47%,#e8f9ff_100%)]
-              "
-            />
+            {kidsBackground ? (
+              <>
+                <img
+                  src={kidsBackground}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 size-full object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-white/38" />
+              </>
+            ) : (
+              <div
+                className="
+                  absolute
+                  inset-0
+                  bg-[linear-gradient(145deg,#fffdf6_0%,#fff5d6_47%,#e8f9ff_100%)]
+                "
+              />
+            )}
 
             {/* dots */}
 
@@ -530,8 +638,8 @@ export function SchoolSelectorPage() {
               "
             >
               <img
-                src="/images/paragon-kids-logo.webp"
-                alt="Paragon Kids"
+                src={kidsLogo}
+                alt={kids?.title?.trim() || "Paragon Kids"}
                 className="
                   h-[64px]
                   w-auto
@@ -633,6 +741,7 @@ export function SchoolSelectorPage() {
                 "
               />
 
+              {!kidsBackground && (
               <img
                 src="/images/para-kids-student.png"
                 alt=""
@@ -653,6 +762,7 @@ export function SchoolSelectorPage() {
                   group-hover:scale-[1.045]
                 "
               />
+              )}
             </div>
 
             {/* bottom fade */}
@@ -716,7 +826,7 @@ export function SchoolSelectorPage() {
                     text-[#34305c]/65
                   "
                 >
-                  Nursery · LKG · UKG
+                  {kids?.subtitle?.trim() || "Nursery · LKG · UKG"}
                 </span>
               </div>
 
@@ -731,7 +841,7 @@ export function SchoolSelectorPage() {
                   xl:text-[58px]
                 "
               >
-                Paragon Kids
+                {kids?.title?.trim() || "Paragon Kids"}
               </h2>
 
               <p
@@ -744,8 +854,8 @@ export function SchoolSelectorPage() {
                   xl:text-sm
                 "
               >
-                A joyful beginning where little minds explore,
-                imagine, grow and learn.
+                {kids?.description?.trim() ||
+                  "A joyful beginning where little minds explore, imagine, grow and learn."}
               </p>
 
               <div className="mt-7">
@@ -769,7 +879,7 @@ export function SchoolSelectorPage() {
                     group-hover:bg-[#ef5f6c]
                   "
                 >
-                  Enter Paragon Kids
+                  {kids?.button_text?.trim() || "Enter Paragon Kids"}
 
                   <ArrowRight
                     size={16}
@@ -880,70 +990,35 @@ export function SchoolSelectorPage() {
         <section
           className="
             flex
-            min-h-screen
+            min-h-[100svh]
             flex-col
-            pt-[72px]
+            bg-[#071b34]
             lg:hidden
           "
           aria-label="Choose your school"
         >
-          {/* mobile heading */}
-
-          <div
-            className="
-              relative
-              z-20
-              bg-[#071b34]
-              px-5
-              pb-6
-              pt-5
-              text-center
-            "
-          >
-            <p
-              className="
-                text-[9px]
-                font-black
-                uppercase
-                tracking-[.24em]
-                text-[#e4b34d]
-              "
-            >
-              Welcome to Paragon
-            </p>
-
-            <h1
-              className="
-                mt-2
-                font-serif
-                text-3xl
-                text-white
-                sm:text-4xl
-              "
-            >
-              Choose your school
-            </h1>
-          </div>
-
           {/* senior mobile */}
 
           <Link
-            to="/school"
+            to={seniorRoute}
             className="
               group
               relative
-              min-h-[360px]
+              min-h-[320px]
               flex-1
               overflow-hidden
               bg-[#08294a]
               text-white
+              transition-transform
+              duration-300
+              active:scale-[.99]
             "
           >
             <img
-              src="/images/paragonmohali_bg.jpg"
+              src={seniorBackground}
               alt=""
               aria-hidden="true"
-              className="absolute inset-0 size-full object-cover"
+              className="absolute inset-0 size-full object-cover object-[58%_center] sm:object-center"
             />
 
             <div
@@ -954,30 +1029,32 @@ export function SchoolSelectorPage() {
               "
             />
 
+            {!seniorBackgroundFromApi && (
             <img
               src="/images/para-students.png"
               alt=""
               aria-hidden="true"
               className="
                 absolute
-                bottom-0
-                right-[-10%]
-                h-[83%]
-                w-[72%]
+                bottom-[-1%]
+                right-[-5%]
+                h-[88%]
+                w-[78%]
                 object-contain
                 object-bottom
               "
             />
+            )}
 
             <div
               className="
                 absolute
                 inset-x-0
                 bottom-0
-                h-[70%]
+                h-[58%]
                 bg-gradient-to-t
                 from-[#04182e]
-                via-[#04182e]/55
+                via-[#04182e]/65
                 to-transparent
               "
             />
@@ -988,17 +1065,18 @@ export function SchoolSelectorPage() {
                 z-10
                 flex
                 h-full
-                min-h-[360px]
+                min-h-[320px]
                 flex-col
                 justify-between
-                p-6
+                p-5
+                sm:min-h-[360px]
                 sm:p-8
               "
             >
               <img
-                src="/images/paragon-school-logo.webp"
-                alt="Paragon Senior Secondary School"
-                className="h-[58px] w-fit object-contain"
+                src={seniorLogo}
+                alt={senior?.title?.trim() || "Paragon Senior Secondary School"}
+                className="h-[52px] w-fit object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,.22)] sm:h-[58px]"
               />
 
               <div>
@@ -1011,26 +1089,33 @@ export function SchoolSelectorPage() {
                     text-[#e4b34d]
                   "
                 >
-                  Grades IX – XII
+                  {senior?.subtitle?.trim() || "Grades IX – XII"}
                 </p>
 
                 <h2
                   className="
                     mt-2
-                    max-w-[280px]
+                    max-w-[250px]
                     font-serif
-                    text-[32px]
-                    leading-none
+                    text-[30px]
+                    leading-[.95]
+                    tracking-[-.025em]
+                    sm:max-w-[280px]
+                    sm:text-[32px]
                   "
                 >
-                  Senior Secondary
-                  <br />
-                  School
+                  {senior?.title?.trim() || (
+                    <>
+                      Senior Secondary
+                      <br />
+                      School
+                    </>
+                  )}
                 </h2>
 
                 <span
                   className="
-                    mt-5
+                    mt-4
                     inline-flex
                     items-center
                     gap-2
@@ -1045,7 +1130,7 @@ export function SchoolSelectorPage() {
                     text-[#092d50]
                   "
                 >
-                  Enter School
+                  {senior?.button_text?.trim() || "Enter School"}
                   <ArrowRight size={14} />
                 </span>
               </div>
@@ -1055,30 +1140,50 @@ export function SchoolSelectorPage() {
           {/* kids mobile */}
 
           <Link
-            to="/kids"
+            to={kidsRoute}
             className="
               group
               relative
-              min-h-[360px]
+              min-h-[320px]
               flex-1
               overflow-hidden
+              border-t
+              border-white/30
               bg-[#fff6d8]
+              transition-transform
+              duration-300
+              active:scale-[.99]
             "
           >
-            <div
-              className="
-                absolute
-                inset-0
-                bg-[linear-gradient(135deg,#fffdf6,#fff2c9_60%,#e6f8ff)]
-              "
-            />
+            {kidsBackground ? (
+              <>
+                <img
+                  src={kidsBackground}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 size-full object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-white/42" />
+              </>
+            ) : (
+              <div
+                className="
+                  absolute
+                  inset-0
+                  bg-[linear-gradient(135deg,#fffdf6,#fff2c9_60%,#e6f8ff)]
+                "
+              />
+            )}
 
             <div
               className="
                 absolute
-                -right-20
-                -top-20
-                size-64
+                -right-16
+                -top-16
+                size-56
+                sm:-right-20
+                sm:-top-20
+                sm:size-64
                 rounded-full
                 bg-[#ffd34e]/50
               "
@@ -1087,10 +1192,11 @@ export function SchoolSelectorPage() {
             <span
               className="
                 absolute
-                right-[8%]
-                top-[15%]
+                right-[7%]
+                top-[12%]
                 grid
-                size-12
+                size-11
+                sm:size-12
                 rotate-12
                 place-items-center
                 rounded-2xl
@@ -1102,30 +1208,32 @@ export function SchoolSelectorPage() {
               A
             </span>
 
+            {!kidsBackground && (
             <img
               src="/images/para-kids-student.png"
               alt=""
               aria-hidden="true"
               className="
                 absolute
-                bottom-0
-                right-[-8%]
-                h-[82%]
-                w-[70%]
+                bottom-[-3%]
+                right-[-7%]
+                h-[91%]
+                w-[80%]
                 object-contain
                 object-bottom
               "
             />
+            )}
 
             <div
               className="
                 absolute
                 inset-x-0
                 bottom-0
-                h-[65%]
+                h-[48%]
                 bg-gradient-to-t
                 from-[#fffaf0]
-                via-[#fffaf0]/55
+                via-[#fffaf0]/70
                 to-transparent
               "
             />
@@ -1136,10 +1244,11 @@ export function SchoolSelectorPage() {
                 z-10
                 flex
                 h-full
-                min-h-[360px]
+                min-h-[320px]
                 flex-col
                 justify-between
-                p-6
+                p-5
+                sm:min-h-[360px]
                 sm:p-8
               "
             >
@@ -1153,9 +1262,9 @@ export function SchoolSelectorPage() {
                 "
               >
                 <img
-                  src="/images/paragon-kids-logo.webp"
-                  alt="Paragon Kids"
-                  className="h-[55px] w-auto"
+                  src={kidsLogo}
+                  alt={kids?.title?.trim() || "Paragon Kids"}
+                  className="h-[48px] w-auto sm:h-[55px]"
                 />
               </div>
 
@@ -1169,24 +1278,26 @@ export function SchoolSelectorPage() {
                     text-[#ef5f6c]
                   "
                 >
-                  Nursery · LKG · UKG
+                  {kids?.subtitle?.trim() || "Nursery · LKG · UKG"}
                 </p>
 
                 <h2
                   className="
                     mt-2
                     font-serif
-                    text-[36px]
+                    text-[34px]
                     leading-none
+                    tracking-[-.025em]
                     text-[#34305c]
+                    sm:text-[36px]
                   "
                 >
-                  Paragon Kids
+                  {kids?.title?.trim() || "Paragon Kids"}
                 </h2>
 
                 <span
                   className="
-                    mt-5
+                    mt-4
                     inline-flex
                     items-center
                     gap-2
@@ -1201,7 +1312,7 @@ export function SchoolSelectorPage() {
                     text-white
                   "
                 >
-                  Enter Kids
+                  {kids?.button_text?.trim() || "Enter Kids"}
                   <ArrowRight size={14} />
                 </span>
               </div>

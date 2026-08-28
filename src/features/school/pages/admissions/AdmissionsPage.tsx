@@ -176,6 +176,8 @@ export function AdmissionsPage() {
   return (
     <main className="overflow-hidden">
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={banner?.title || page?.title || "Admission Process"}
         description={plainText(banner?.description) || "Everything you need to know about admissions, required documents, fees and eligibility."}
       />

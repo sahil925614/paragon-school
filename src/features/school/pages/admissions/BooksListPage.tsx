@@ -1,4 +1,4 @@
-﻿import {
+import {
   BookOpenCheck,
   Download,
   FileText,
@@ -80,6 +80,8 @@ export function BooksListPage() {
   return (
     <>
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={banner?.title || booksPage?.title || "Books List"}
         description={plainText(banner?.description) || "Prescribed books and learning resources to begin the academic year with confidence."}
       />

@@ -44,6 +44,8 @@ type FlashbackSection = {
   type: string;
   title?: string;
   description?: string | null;
+  image?: string | null;
+  image_url?: string | null;
   is_active: boolean;
   settings?: FlashbackSettings | [];
 };
@@ -258,6 +260,8 @@ export function FlashbacksPage() {
   return (
     <>
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={
           banner?.title ||
           flashbacksPage?.title ||

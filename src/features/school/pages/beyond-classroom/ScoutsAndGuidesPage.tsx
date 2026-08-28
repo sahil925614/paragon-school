@@ -1,58 +1,176 @@
 import {
   Compass,
   Flag,
+  Images,
   ShieldCheck,
 } from "lucide-react";
+
 import { useQuery } from "@tanstack/react-query";
+
 import {
   useEffect,
   useRef,
   type ReactNode,
 } from "react";
+
 import { PageBanner } from "../../../../components/PageBanner";
 import { schoolApi } from "../../api/schoolApi";
 import { applyPageSeo, type PageSeo } from "../../utils/pageSeo";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
+type ActivityCardImage = {
+  image?: string | null;
+  image_url?: string | null;
+};
+
 type ActivityCard = {
-  title?: string;
-  description?: string;
-  image?: string;
-  image_url?: string;
+  title?: string | null;
+  description?: string | null;
+  images?: ActivityCardImage[] | null;
+};
+
+type ActivityCardsSettings = {
+  cards?: ActivityCard[] | null;
 };
 
 type ScoutsSection = {
+  id?: number;
   type: string;
-  title: string;
+  name?: string;
+  title?: string | null;
   description?: string | null;
+  button_text?: string | null;
+  button_url?: string | null;
+  image?: string | null;
+  image_url?: string | null;
+  settings?: ActivityCardsSettings | [];
+  sort_order?: number;
   is_active: boolean;
-  settings?: { cards?: ActivityCard[] } | [];
 };
 
 type ScoutsPageData = {
+  id?: number;
+  site_id?: number;
   title: string;
   slug: string;
+  template?: string;
+  is_home?: boolean;
   seo?: PageSeo;
   sections: ScoutsSection[];
 };
 
-const storageBaseUrl = "https://lightskyblue-eland-620788.hostingersite.com/storage/";
+/* =========================================================
+   STORAGE
+========================================================= */
 
-function mediaUrl(image?: string, imageUrl?: string) {
-  if (image) return `${storageBaseUrl}${image.replace(/^\/+/, "")}`;
-  if (imageUrl && !imageUrl.includes("localhost")) return imageUrl;
+const storageBaseUrl =
+  "https://lightskyblue-eland-620788.hostingersite.com/storage/";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function mediaUrl(
+  image?: string | null,
+  imageUrl?: string | null
+): string | undefined {
+  if (
+    imageUrl &&
+    !imageUrl.includes("localhost") &&
+    /^https?:\/\//i.test(imageUrl)
+  ) {
+    return imageUrl;
+  }
+
+  if (image) {
+    if (/^https?:\/\//i.test(image)) {
+      return image;
+    }
+
+    return `${storageBaseUrl}${image.replace(/^\/+/, "")}`;
+  }
+
+  if (imageUrl && !imageUrl.includes("localhost")) {
+    return imageUrl;
+  }
+
   return undefined;
 }
 
-function plainText(html?: string | null) {
-  return html?.replace(/<[^>]*>/g, "").trim() || "";
+function decodeHtml(text: string): string {
+  return text
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&ldquo;/gi, "“")
+    .replace(/&rdquo;/gi, "”")
+    .replace(/&lsquo;/gi, "‘")
+    .replace(/&rsquo;/gi, "’");
 }
-const images = [
+
+function plainText(html?: string | null): string {
+  if (!html) return "";
+
+  return decodeHtml(
+    html
+      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/<\/p>/gi, " ")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
+}
+
+function extractParagraphs(
+  html?: string | null
+): string[] {
+  if (!html) return [];
+
+  const matches = [
+    ...html.matchAll(
+      /<p[^>]*>(.*?)<\/p>/gis
+    ),
+  ];
+
+  if (!matches.length) {
+    const text = plainText(html);
+
+    return text ? [text] : [];
+  }
+
+  return matches
+    .map((match) =>
+      plainText(match[1])
+    )
+    .filter(
+      (paragraph): paragraph is string =>
+        Boolean(paragraph)
+    );
+}
+
+/* =========================================================
+   FALLBACK
+========================================================= */
+
+const fallbackImages = [
   "/images/scouts-and-guides.webp",
   "/images/scouts-and-guides-2.webp",
 ];
 
+const fallbackParagraphs = [
+  "The little champs of Paragon actively participated in the Scout and Guide Camp “Tritya Charan” held during school hours. Over fifty students from classes III to VI enthusiastically engaged in various activities such as the Flag Song, Scout and Guide Prayer, Scout Sign, and Basic Knot Skills.",
+
+  "These activities helped students develop their character, enhance essential life skills, and cultivate a strong spirit of service. The camp also provided an opportunity for the scouts to learn tent-setting techniques and perform various related tasks, fostering teamwork, discipline, and self-reliance.",
+
+  "This enriching experience was instrumental in shaping confident and responsible young individuals, ready to contribute positively to their community.",
+];
+
 /* =========================================================
-   SCROLL REVEAL
+   REVEAL
 ========================================================= */
 
 function Reveal({
@@ -64,31 +182,53 @@ function Reveal({
   children: ReactNode;
   className?: string;
   delay?: number;
-  direction?: "up" | "left" | "right" | "scale";
+  direction?:
+    | "up"
+    | "left"
+    | "right"
+    | "scale";
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref =
+    useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const element = ref.current;
 
     if (!element) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
+    if (
+      !("IntersectionObserver" in window)
+    ) {
+      element.classList.add(
+        "scout-visible"
+      );
+      return;
+    }
 
-        element.classList.add("scout-visible");
-        observer.unobserve(element);
-      },
-      {
-        threshold: 0.1,
-        rootMargin: "0px 0px -35px 0px",
-      },
-    );
+    const observer =
+      new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+          element.classList.add(
+            "scout-visible"
+          );
+
+          observer.unobserve(element);
+        },
+        {
+          threshold: 0.1,
+          rootMargin:
+            "0px 0px -35px 0px",
+        }
+      );
 
     observer.observe(element);
 
-    return () => observer.disconnect();
+    return () =>
+      observer.disconnect();
   }, []);
 
   const directionClass = {
@@ -112,67 +252,259 @@ function Reveal({
 }
 
 /* =========================================================
+   IMAGE GALLERY
+========================================================= */
+
+function ScoutsGallery({
+  images,
+  title,
+}: {
+  images: string[];
+  title: string;
+}) {
+  if (!images.length) return null;
+
+  return (
+    <div
+      className={`
+        grid
+        gap-5
+
+        ${
+          images.length === 1
+            ? "grid-cols-1"
+            : "md:grid-cols-2"
+        }
+      `}
+    >
+      {images.map(
+        (image, index) => (
+          <figure
+            key={`${image}-${index}`}
+            className="
+              scout-image-card
+              group
+              relative
+            "
+          >
+            {/* BACKGROUND SHAPE */}
+
+            <div
+              aria-hidden="true"
+              className={`
+                absolute
+                -bottom-4
+                h-[72%]
+                w-[72%]
+                rounded-[28px]
+
+                ${
+                  index % 2 === 0
+                    ? "-left-4 bg-navy"
+                    : "-right-4 bg-gold/20"
+                }
+              `}
+            />
+
+            {/* DECORATIVE RING */}
+
+            <div
+              aria-hidden="true"
+              className={`
+                absolute
+                -top-4
+                size-24
+                rounded-full
+                border-[14px]
+
+                ${
+                  index % 2 === 0
+                    ? "-right-4 border-gold/20"
+                    : "-left-4 border-navy/[.07]"
+                }
+              `}
+            />
+
+            {/* IMAGE FRAME */}
+
+            <div
+              className="
+                relative
+                overflow-hidden
+                rounded-[28px]
+                bg-white
+                p-2
+                shadow-[0_25px_65px_-35px_rgba(16,42,67,.5)]
+              "
+            >
+              <div
+                className="
+                  relative
+                  flex
+                  aspect-[4/3]
+                  items-center
+                  justify-center
+                  overflow-hidden
+                  rounded-[22px]
+                  bg-[#f2f1ed]
+                "
+              >
+                <img
+                  src={image}
+                  alt={`${title} image ${
+                    index + 1
+                  }`}
+                  loading={
+                    index === 0
+                      ? "eager"
+                      : "lazy"
+                  }
+                  className="
+                    h-full
+                    w-full
+                    object-contain
+                    transition
+                    duration-700
+                    ease-out
+                    group-hover:scale-[1.02]
+                  "
+                />
+              </div>
+            </div>
+
+            {/* IMAGE NUMBER */}
+
+            <span
+              className={`
+                absolute
+                -bottom-3
+                grid
+                size-11
+                place-items-center
+                rounded-xl
+                text-[11px]
+                font-bold
+                shadow-lg
+
+                ${
+                  index % 2 === 0
+                    ? "right-7 bg-gold text-white"
+                    : "left-7 bg-navy text-gold"
+                }
+              `}
+            >
+              {String(
+                index + 1
+              ).padStart(2, "0")}
+            </span>
+          </figure>
+        )
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
    PAGE
 ========================================================= */
 
 export function ScoutsAndGuidesPage() {
   const { data: page } = useQuery({
-    queryKey: ["school-page", "scouts-and-guides"],
+    queryKey: [
+      "school-page",
+      "scouts-and-guides",
+    ],
+
     queryFn: async () => {
-      const response = await schoolApi.get<{ data: ScoutsPageData }>(
-        "pages/scouts-and-guides",
-      );
+      const response =
+        await schoolApi.get<{
+          data: ScoutsPageData;
+        }>(
+          "pages/scouts-and-guides"
+        );
+
       return response.data.data;
     },
   });
+
+  /* =======================================================
+     SECTIONS
+  ======================================================= */
+
   const banner = page?.sections.find(
-    (section) => section.type === "home_banner" && section.is_active,
+    (section) =>
+      section.type ===
+        "home_banner" &&
+      section.is_active
   );
+
   const content = page?.sections.find(
-    (section) => section.type === "activity_cards_content" && section.is_active,
+    (section) =>
+      section.type ===
+        "activity_cards_content" &&
+      section.is_active
   );
-  const cards =
-    content?.settings && !Array.isArray(content.settings)
+
+  /* =======================================================
+     CARDS
+  ======================================================= */
+
+  const cards: ActivityCard[] =
+    content?.settings &&
+    !Array.isArray(
+      content.settings
+    )
       ? content.settings.cards ?? []
       : [];
-  const apiImages = cards
-    .map((card) => mediaUrl(card.image, card.image_url))
-    .filter((image): image is string => Boolean(image));
-  const displayedImages = apiImages.length >= 2 ? apiImages : images;
-  const firstContent =
-    plainText(cards[0]?.description) || plainText(content?.description);
-  const secondContent = plainText(cards[1]?.description);
-  const finalContent = plainText(cards[2]?.description);
-  const description =
-    plainText(banner?.description) ||
-    "The little champs of Paragon actively participated in the Scout and Guide Camp Tritiya Charan.";
+
+  /* =======================================================
+     SEO
+  ======================================================= */
 
   useEffect(() => {
     applyPageSeo(page?.seo);
   }, [page]);
 
+  /* =======================================================
+     BANNER
+  ======================================================= */
+
+  const bannerDescription =
+    plainText(
+      banner?.description
+    ) ||
+    "Explore Scouts And Guides at Paragon Senior School.";
+
   return (
     <>
       <main className="overflow-hidden bg-[#fcfbf8]">
 
-        {/* =====================================================
-            PAGE BANNER
-        ===================================================== */}
+        {/* ===================================================
+            BANNER
+        =================================================== */}
 
         <PageBanner
-          title={banner?.title || page?.title || "Scouts and Guides"}
-          description={description}
+          image={banner?.image}
+          imageUrl={
+            banner?.image_url
+          }
+          title={
+            banner?.title ||
+            page?.title ||
+            "Scouts And Guides"
+          }
+          description={
+            bannerDescription
+          }
         />
 
-        {/* =====================================================
-            MAIN SECTION
-        ===================================================== */}
+        {/* ===================================================
+            CONTENT
+        =================================================== */}
 
         <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">
 
-          {/* =================================================
-              BACKGROUND CIRCLES
-          ================================================= */}
+          {/* BACKGROUND */}
 
           <div
             aria-hidden="true"
@@ -194,7 +526,7 @@ export function ScoutsAndGuidesPage() {
               pointer-events-none
               absolute
               -right-40
-              top-[35%]
+              top-[42%]
               size-[390px]
               rounded-full
               border-[58px]
@@ -217,29 +549,23 @@ export function ScoutsAndGuidesPage() {
 
           <div className="container relative">
 
-            {/* =================================================
-                INTRODUCTION
-            ================================================= */}
+            {/* ===============================================
+                SECTION HEADING
+            =============================================== */}
 
             <Reveal
               direction="up"
-              className="mx-auto max-w-4xl text-center"
+              className="
+                mx-auto
+                max-w-4xl
+                text-center
+              "
             >
-              <p
-                className="
-                  text-[11px]
-                  font-bold
-                  uppercase
-                  tracking-[.22em]
-                  text-gold-dark
-                "
-              >
-                Scouts & Guides
-              </p>
+             
 
               <h2
                 className="
-                  mt-4
+                  mt-3
                   font-serif
                   text-3xl
                   leading-tight
@@ -248,10 +574,9 @@ export function ScoutsAndGuidesPage() {
                   lg:text-5xl
                 "
               >
-                {content?.title || page?.title || "Scouts and Guides Camp"}
-                <span className="block text-gold-dark">
-                  “Tritya Charan”
-                </span>
+                {content?.title ||
+                  page?.title ||
+                  "Scouts And Guides"}
               </h2>
 
               <div
@@ -266,443 +591,388 @@ export function ScoutsAndGuidesPage() {
                 "
               >
                 <span className="h-[2px] w-10 bg-gold" />
+
                 <span className="size-1.5 rotate-45 bg-gold" />
+
                 <span className="h-[2px] w-10 bg-gold" />
               </div>
+
             </Reveal>
 
-            {/* =================================================
-                FIRST CONTENT / IMAGE
-            ================================================= */}
+            {/* ===============================================
+                DYNAMIC CARDS
+            =============================================== */}
 
             <div
               className="
                 mx-auto
-                mt-12
-                grid
+                mt-14
                 max-w-6xl
-                items-center
-                gap-10
-                sm:mt-14
-                lg:grid-cols-[1.08fr_.92fr]
-                lg:gap-16
+                space-y-16
+                sm:mt-16
+                sm:space-y-20
               "
             >
+              {cards.map(
+                (card, cardIndex) => {
+                  const apiImages =
+                    card.images
+                      ?.map(
+                        (item) =>
+                          mediaUrl(
+                            item.image,
+                            item.image_url
+                          )
+                      )
+                      .filter(
+                        (
+                          image
+                        ): image is string =>
+                          Boolean(
+                            image
+                          )
+                      ) ?? [];
 
-              {/* IMAGE 01 */}
+                  /*
+                   * Only fallback when API
+                   * provides no images.
+                   */
+                  const displayedImages =
+                    apiImages.length
+                      ? apiImages
+                      : fallbackImages;
 
-              <Reveal direction="left">
-                <figure className="scout-image-card group relative">
+                  const paragraphs =
+                    extractParagraphs(
+                      card.description
+                    );
 
-                  {/* BACK SHAPE */}
+                  const displayedParagraphs =
+                    paragraphs.length
+                      ? paragraphs
+                      : fallbackParagraphs;
 
-                  <div
-                    aria-hidden="true"
-                    className="
-                      absolute
-                      -bottom-5
-                      -left-5
-                      h-[75%]
-                      w-[70%]
-                      rounded-[28px]
-                      bg-navy
-                    "
-                  />
+                  const cardTitle =
+                    card.title ||
+                    "Scouts and Guides Camp “Tritya Charan”";
 
-                  <div
-                    aria-hidden="true"
-                    className="
-                      absolute
-                      -right-4
-                      -top-4
-                      size-28
-                      rounded-full
-                      border-[16px]
-                      border-gold/25
-                    "
-                  />
+                  return (
+                    <article
+                      key={`${cardTitle}-${cardIndex}`}
+                      className="
+                        overflow-hidden
+                        rounded-[30px]
+                        border
+                        border-slate-200/80
+                        bg-white
+                        shadow-[0_28px_80px_-50px_rgba(16,42,67,.5)]
+                      "
+                    >
+                      {/* =======================================
+                          CARD HEADER
+                      ======================================= */}
 
-                  {/* IMAGE */}
+                      <Reveal direction="up">
 
-                  <div
-                    className="
-                      relative
-                      overflow-hidden
-                      rounded-[28px]
-                      bg-white
-                      p-2
-                      shadow-[0_25px_65px_-35px_rgba(16,42,67,.5)]
-                    "
-                  >
-                    <div className="overflow-hidden rounded-[22px]">
-                      <img
-                        src={displayedImages[0]}
-                        alt="Scouts and Guides Camp Tritya Charan 1"
+                        <div
+                          className="
+                            relative
+                            overflow-hidden
+                            border-b
+                            border-slate-100
+                            bg-[#f8f6f0]
+                            px-6
+                            py-7
+                            sm:px-8
+                            sm:py-8
+                            lg:px-10
+                          "
+                        >
+                          <div
+                            aria-hidden="true"
+                            className="
+                              pointer-events-none
+                              absolute
+                              -right-16
+                              -top-16
+                              size-44
+                              rounded-full
+                              border-[28px]
+                              border-gold/[.08]
+                            "
+                          />
+
+                          <div className="relative">
+
+                            <div
+                              className="
+                                flex
+                                items-center
+                                gap-3
+                              "
+                            >
+                              <span
+                                className="
+                                  grid
+                                  size-10
+                                  place-items-center
+                                  rounded-xl
+                                  bg-navy
+                                  text-gold
+                                "
+                              >
+                                <Flag
+                                  size={18}
+                                />
+                              </span>
+
+                              <span
+                                className="
+                                  text-[10px]
+                                  font-bold
+                                  uppercase
+                                  tracking-[.18em]
+                                  text-gold-dark
+                                "
+                              >
+                                Camp Experience
+                              </span>
+
+                            </div>
+
+                            <h3
+                              className="
+                                mt-5
+                                max-w-4xl
+                                font-serif
+                                text-3xl
+                                leading-tight
+                                text-navy
+                                sm:text-4xl
+                              "
+                            >
+                              {cardTitle}
+                            </h3>
+
+                            <div className="mt-5 h-[2px] w-12 bg-gold" />
+
+                          </div>
+
+                        </div>
+
+                      </Reveal>
+
+                      {/* =======================================
+                          ALL IMAGES TOGETHER
+                      ======================================= */}
+
+                      {displayedImages.length >
+                        0 && (
+                        <Reveal
+                          direction="scale"
+                          className="
+                            px-6
+                            pt-9
+                            sm:px-8
+                            sm:pt-10
+                            lg:px-10
+                          "
+                        >
+                          <div
+                            className="
+                              mb-6
+                              flex
+                              items-center
+                              gap-3
+                            "
+                          >
+                            <Images
+                              size={17}
+                              className="text-gold-dark"
+                            />
+
+                            <span
+                              className="
+                                text-[10px]
+                                font-bold
+                                uppercase
+                                tracking-[.18em]
+                                text-slate-400
+                              "
+                            >
+                              {displayedImages.length}{" "}
+                              {displayedImages.length ===
+                              1
+                                ? "Photograph"
+                                : "Photographs"}
+                            </span>
+                          </div>
+
+                          <ScoutsGallery
+                            images={
+                              displayedImages
+                            }
+                            title={
+                              cardTitle
+                            }
+                          />
+
+                        </Reveal>
+                      )}
+
+                      {/* =======================================
+                          COMPLETE DESCRIPTION
+                      ======================================= */}
+
+                      <Reveal
+                        direction="up"
+                        delay={80}
                         className="
-                          aspect-[4/3]
-                          size-full
-                          object-cover
-                          transition
-                          duration-700
-                          ease-out
-                          group-hover:scale-[1.035]
+                          px-6
+                          pb-8
+                          pt-12
+                          sm:px-8
+                          sm:pb-10
+                          sm:pt-14
+                          lg:px-10
                         "
-                      />
-                    </div>
-                  </div>
+                      >
+                        <div
+                          className="
+                            grid
+                            gap-8
+                            lg:grid-cols-[.28fr_.72fr]
+                            lg:gap-12
+                          "
+                        >
+                          {/* LEFT */}
 
-                  {/* NUMBER */}
+                          <div>
 
-                  <span
-                    className="
-                      absolute
-                      -bottom-4
-                      right-7
-                      grid
-                      size-12
-                      place-items-center
-                      rounded-xl
-                      bg-gold
-                      text-xs
-                      font-bold
-                      text-white
-                      shadow-lg
-                    "
-                  >
-                    01
-                  </span>
-                </figure>
-              </Reveal>
+                            <div
+                              className="
+                                grid
+                                size-12
+                                place-items-center
+                                rounded-2xl
+                                bg-cream
+                                text-gold-dark
+                              "
+                            >
+                              <ShieldCheck
+                                size={21}
+                              />
+                            </div>
 
-              {/* CONTENT 01 */}
+                            <p
+                              className="
+                                mt-5
+                                text-[10px]
+                                font-bold
+                                uppercase
+                                tracking-[.19em]
+                                text-gold-dark
+                              "
+                            >
+                              Scouts & Guides
+                            </p>
 
-              <Reveal
-                direction="right"
-                delay={100}
-              >
-                <div>
-                  <div
-                    className="
-                      grid
-                      size-13
-                      place-items-center
-                      rounded-2xl
-                      bg-cream
-                      text-gold-dark
-                    "
-                  >
-                    <Flag size={23} />
-                  </div>
+                            <h4
+                              className="
+                                mt-3
+                                font-serif
+                                text-2xl
+                                leading-tight
+                                text-navy
+                              "
+                            >
+                              Camp Details
+                            </h4>
 
-                  <p
-                    className="
-                      mt-6
-                      text-[11px]
-                      font-bold
-                      uppercase
-                      tracking-[.2em]
-                      text-gold-dark
-                    "
-                  >
-                    Camp Experience
-                  </p>
+                            <div className="mt-4 h-[2px] w-10 bg-gold" />
 
-                  <div className="mt-4 h-[2px] w-10 bg-gold" />
+                          </div>
 
-                  <p
-                    className="
-                      mt-6
-                      text-[15px]
-                      leading-8
-                      text-slate-600
-                      sm:text-base
-                    "
-                  >
-                    {firstContent || "The little champs of Paragon actively participated in the Scout and Guide Camp Tritya Charan. Over fifty students from classes III to VI enthusiastically engaged in activities such as the Flag Song, Scout and Guide Prayer, Scout Sign, and Basic Knot Skills."}
-                  </p>
-                </div>
-              </Reveal>
+                          {/* ALL PARAGRAPHS */}
+
+                          <div
+                            className="
+                              space-y-5
+                              text-[15px]
+                              leading-8
+                              text-slate-600
+                              sm:text-base
+                            "
+                          >
+                            {displayedParagraphs.map(
+                              (
+                                paragraph,
+                                paragraphIndex
+                              ) => (
+                                <p
+                                  key={`${paragraph}-${paragraphIndex}`}
+                                >
+                                  {
+                                    paragraph
+                                  }
+                                </p>
+                              )
+                            )}
+                          </div>
+
+                        </div>
+
+                      </Reveal>
+
+                    </article>
+                  );
+                }
+              )}
             </div>
 
-            {/* =================================================
-                SECOND CONTENT / IMAGE
-                REVERSED LAYOUT
-            ================================================= */}
+            {/* ===============================================
+                EMPTY STATE
+            =============================================== */}
 
-            <div
-              className="
-                mx-auto
-                mt-20
-                grid
-                max-w-6xl
-                items-center
-                gap-10
-                sm:mt-24
-                lg:grid-cols-[.92fr_1.08fr]
-                lg:gap-16
-              "
-            >
+            {page &&
+              cards.length === 0 && (
+                <div
+                  className="
+                    mx-auto
+                    mt-14
+                    max-w-4xl
+                    rounded-[26px]
+                    border
+                    border-slate-200
+                    bg-white
+                    p-8
+                    text-center
+                  "
+                >
+                  <Flag
+                    size={28}
+                    className="mx-auto text-gold-dark"
+                  />
 
-              {/* CONTENT 02 */}
-
-              <Reveal
-                direction="left"
-                className="order-2 lg:order-1"
-              >
-                <div>
-                  <div
-                    className="
-                      grid
-                      size-13
-                      place-items-center
-                      rounded-2xl
-                      bg-navy
-                      text-gold
-                      shadow-[0_12px_28px_-15px_rgba(16,42,67,.5)]
-                    "
-                  >
-                    <Compass size={23} />
-                  </div>
-
-                  <p
-                    className="
-                      mt-6
-                      text-[11px]
-                      font-bold
-                      uppercase
-                      tracking-[.2em]
-                      text-gold-dark
-                    "
-                  >
-                    Learning Through Participation
-                  </p>
-
-                  <div className="mt-4 h-[2px] w-10 bg-gold" />
-
-                  <p
-                    className="
-                      mt-6
-                      text-[15px]
-                      leading-8
-                      text-slate-600
-                      sm:text-base
-                    "
-                  >
-                    {secondContent || "These activities helped students develop character, essential life skills, service, teamwork, discipline, self-reliance, tent-setting techniques and practical participation."}
+                  <p className="mt-4 text-sm text-slate-500">
+                    Scouts and Guides
+                    content is currently
+                    unavailable.
                   </p>
                 </div>
-              </Reveal>
+              )}
 
-              {/* IMAGE 02 */}
-
-              <Reveal
-                direction="right"
-                delay={100}
-                className="order-1 lg:order-2"
-              >
-                <figure className="scout-image-card group relative">
-
-                  {/* GOLD BACKGROUND */}
-
-                  <div
-                    aria-hidden="true"
-                    className="
-                      absolute
-                      -bottom-5
-                      -right-5
-                      h-[75%]
-                      w-[70%]
-                      rounded-[28px]
-                      bg-gold/20
-                    "
-                  />
-
-                  {/* NAVY RING */}
-
-                  <div
-                    aria-hidden="true"
-                    className="
-                      absolute
-                      -left-5
-                      -top-5
-                      size-28
-                      rounded-full
-                      border-[16px]
-                      border-navy/[.08]
-                    "
-                  />
-
-                  <div
-                    className="
-                      relative
-                      overflow-hidden
-                      rounded-[28px]
-                      bg-white
-                      p-2
-                      shadow-[0_25px_65px_-35px_rgba(16,42,67,.5)]
-                    "
-                  >
-                    <div className="overflow-hidden rounded-[22px]">
-                      <img
-                        src={displayedImages[1]}
-                        alt="Scouts and Guides Camp Tritya Charan 2"
-                        className="
-                          aspect-[4/3]
-                          size-full
-                          object-cover
-                          transition
-                          duration-700
-                          ease-out
-                          group-hover:scale-[1.035]
-                        "
-                      />
-                    </div>
-                  </div>
-
-                  <span
-                    className="
-                      absolute
-                      -bottom-4
-                      left-7
-                      grid
-                      size-12
-                      place-items-center
-                      rounded-xl
-                      bg-navy
-                      text-xs
-                      font-bold
-                      text-gold
-                      shadow-lg
-                    "
-                  >
-                    02
-                  </span>
-                </figure>
-              </Reveal>
-            </div>
-
-            {/* =================================================
-                FINAL STATEMENT
-            ================================================= */}
-
-            <Reveal
-              direction="up"
-              delay={80}
-              className="mx-auto mt-20 max-w-5xl sm:mt-24"
-            >
-              <div
-                className="
-                  relative
-                  overflow-hidden
-                  rounded-[28px]
-                  bg-navy
-                  px-7
-                  py-10
-                  text-center
-                  shadow-[0_25px_65px_-38px_rgba(16,42,67,.65)]
-                  sm:px-12
-                  sm:py-12
-                "
-              >
-
-                {/* GRID PATTERN */}
-
-                <div
-                  aria-hidden="true"
-                  className="
-                    pointer-events-none
-                    absolute
-                    inset-0
-                    opacity-[.04]
-                    [background-image:linear-gradient(rgba(255,255,255,.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.8)_1px,transparent_1px)]
-                    [background-size:30px_30px]
-                  "
-                />
-
-                {/* DECORATIVE CIRCLE */}
-
-                <div
-                  aria-hidden="true"
-                  className="
-                    absolute
-                    -right-20
-                    -top-20
-                    size-52
-                    rounded-full
-                    border-[35px]
-                    border-gold/10
-                  "
-                />
-
-                <div
-                  aria-hidden="true"
-                  className="
-                    absolute
-                    -bottom-20
-                    -left-20
-                    size-48
-                    rounded-full
-                    bg-white/[.025]
-                  "
-                />
-
-                <div className="relative">
-
-                  <div
-                    className="
-                      mx-auto
-                      grid
-                      size-13
-                      place-items-center
-                      rounded-2xl
-                      bg-white/10
-                      text-gold
-                    "
-                  >
-                    <ShieldCheck size={24} />
-                  </div>
-
-                  <div
-                    className="
-                      mx-auto
-                      mt-6
-                      h-[2px]
-                      w-10
-                      bg-gold
-                    "
-                  />
-
-                  <p
-                    className="
-                      mx-auto
-                      mt-6
-                      max-w-3xl
-                      font-serif
-                      text-xl
-                      leading-9
-                      text-white
-                      sm:text-2xl
-                      sm:leading-10
-                    "
-                  >
-                    {finalContent || "This enriching experience was instrumental in shaping confident and responsible young individuals, ready to contribute positively to their community."}
-                  </p>
-                </div>
-              </div>
-            </Reveal>
           </div>
+
         </section>
+
       </main>
 
       {/* =====================================================
-          ANIMATION STYLES
+          ANIMATION
       ===================================================== */}
 
       <style>{`
-
-        /* =====================================================
-           REVEAL BASE
-        ===================================================== */
 
         .scout-reveal {
           opacity: 0;
@@ -714,72 +984,50 @@ export function ScoutsAndGuidesPage() {
           will-change: transform, opacity;
         }
 
-
         .scout-reveal-up {
-          transform: translateY(60px);
+          transform: translateY(50px);
         }
-
 
         .scout-reveal-left {
-          transform: translateX(-65px);
+          transform: translateX(-55px);
         }
-
 
         .scout-reveal-right {
-          transform: translateX(65px);
+          transform: translateX(55px);
         }
-
 
         .scout-reveal-scale {
           transform:
-            translateY(35px)
-            scale(.94);
+            translateY(25px)
+            scale(.97);
         }
-
 
         .scout-reveal.scout-visible {
           opacity: 1;
           transform: none;
         }
 
-
-        /* =====================================================
-           IMAGE CARDS
-        ===================================================== */
-
         .scout-image-card {
           transition:
             transform .55s cubic-bezier(.22,1,.36,1);
         }
 
-
         .scout-image-card:hover {
           transform: translateY(-5px);
         }
-
-
-        /* =====================================================
-           MOBILE
-        ===================================================== */
 
         @media (max-width: 767px) {
 
           .scout-reveal-left,
           .scout-reveal-right {
-            transform: translateY(45px);
+            transform: translateY(40px);
           }
-
 
           .scout-reveal.scout-visible {
             transform: none;
           }
 
         }
-
-
-        /* =====================================================
-           REDUCED MOTION
-        ===================================================== */
 
         @media (prefers-reduced-motion: reduce) {
 
@@ -792,7 +1040,6 @@ export function ScoutsAndGuidesPage() {
             transform: none !important;
             transition: none !important;
           }
-
 
           .scout-image-card {
             transform: none !important;

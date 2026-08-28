@@ -1,4 +1,4 @@
-﻿import {
+import {
   CalendarDays,
   Crown,
   Shield,
@@ -154,6 +154,8 @@ export function HouseActivitiesPage() {
   return (
     <>
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={banner?.title || housesPage?.title || "House Activities"}
         description={plainText(banner?.description) || "Explore competitions and events across the school houses."}
       />

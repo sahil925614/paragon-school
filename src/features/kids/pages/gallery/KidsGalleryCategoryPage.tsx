@@ -2,8 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Camera,
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon,
   Images,
-  Sparkles,
+  X,
 } from "lucide-react";
 import {
   CSSProperties,
@@ -105,6 +108,10 @@ function useInView<T extends HTMLElement>(
 
 export function KidsGalleryCategoryPage() {
   const { categorySlug } = useParams();
+  const [lightboxPhoto, setLightboxPhoto] = useState<{
+    src: string;
+    alt: string;
+  } | null>(null);
 
   const { data, isError } = useQuery({
     queryKey: ["kids-gallery-category", categorySlug],
@@ -115,14 +122,28 @@ export function KidsGalleryCategoryPage() {
     enabled: Boolean(categorySlug),
   });
 
-  const photos = (data?.albums ?? []).flatMap((album) =>
-    (album.images ?? []).flatMap((image, index) => {
-      const src = mediaUrl(image.image, image.image_url);
-      return src
-        ? [{ src, alt: plainText(image.alt) || `${album.title || data?.page.title || "Gallery"} photograph ${index + 1}` }]
-        : [];
-    }),
-  );
+  const albums = (data?.albums ?? [])
+    .map((album) => ({
+      title: plainText(album.title) || data?.page.title || "Gallery album",
+      photos: (album.images ?? []).flatMap((image, index) => {
+        const src = mediaUrl(image.image, image.image_url);
+
+        return src
+          ? [
+              {
+                src,
+                alt:
+                  plainText(image.alt) ||
+                  (plainText(album.title) || data?.page.title || "Gallery") +
+                    " photograph " +
+                    (index + 1),
+              },
+            ]
+          : [];
+      }),
+    }))
+    .filter((album) => album.photos.length > 0);
+  const photos = albums.flatMap((album) => album.photos);
   const colorIndex = categorySlug
     ? Array.from(categorySlug).reduce((total, character) => total + character.charCodeAt(0), 0) % categoryColors.length
     : 0;
@@ -130,18 +151,56 @@ export function KidsGalleryCategoryPage() {
     title: data?.banner?.title || data?.page.title || categorySlug || "Gallery",
     description: plainText(data?.banner?.description),
     color: categoryColors[colorIndex],
+    albums,
     photos,
   };
+  const lightboxIndex = lightboxPhoto
+    ? photos.findIndex((photo) => photo.src === lightboxPhoto.src)
+    : -1;
 
-  const headingReveal =
-    useInView<HTMLDivElement>(0.15);
+  const {
+    ref: headingRevealRef,
+    visible: headingVisible,
+  } = useInView<HTMLDivElement>(0.15);
 
-  const galleryReveal =
-    useInView<HTMLDivElement>(0.05);
+  const {
+    ref: galleryRevealRef,
+    visible: galleryVisible,
+  } = useInView<HTMLDivElement>(0.05);
 
   useEffect(() => {
     applyPageSeo(data?.page.seo);
   }, [data]);
+
+  useEffect(() => {
+    if (!lightboxPhoto || lightboxIndex < 0) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setLightboxPhoto(null);
+      }
+
+      if (event.key === "ArrowLeft") {
+        const previousIndex =
+          (lightboxIndex - 1 + photos.length) % photos.length;
+        setLightboxPhoto(photos[previousIndex]);
+      }
+
+      if (event.key === "ArrowRight") {
+        const nextIndex = (lightboxIndex + 1) % photos.length;
+        setLightboxPhoto(photos[nextIndex]);
+      }
+    };
+    const previousOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [lightboxPhoto, lightboxIndex, photos]);
 
   if (!categorySlug || isError) {
     return (
@@ -290,7 +349,7 @@ export function KidsGalleryCategoryPage() {
           ================================================= */}
 
           <div
-            ref={headingReveal.ref}
+            ref={headingRevealRef}
             className={`
               mb-12
               flex
@@ -303,7 +362,7 @@ export function KidsGalleryCategoryPage() {
               sm:items-end
               sm:justify-between
               ${
-                headingReveal.visible
+                headingVisible
                   ? "translate-y-0 opacity-100"
                   : "translate-y-8 opacity-0"
               }
@@ -431,309 +490,169 @@ export function KidsGalleryCategoryPage() {
           ================================================= */}
 
           <div
-            ref={galleryReveal.ref}
-            className="
-              grid
-              grid-cols-1
-              gap-6
-              sm:grid-cols-2
-              lg:grid-cols-12
-              lg:gap-7
-            "
+            ref={galleryRevealRef}
+            className="space-y-12 sm:space-y-14 lg:space-y-16"
           >
-            {category.photos.map(
-              (photo, index) => {
-
-                /*
-                  Repeating layout pattern:
-
-                  0 = large
-                  1 = medium
-                  2 = medium
-                  3 = wide
-                  4 = medium
-                  5 = medium
-                */
-
-                const pattern =
-                  index % 6;
-
-                const layout =
-                  pattern === 0
-                    ? "lg:col-span-7"
-                    : pattern === 1
-                      ? "lg:col-span-5"
-                      : pattern === 2
-                        ? "lg:col-span-5"
-                        : pattern === 3
-                          ? "lg:col-span-7"
-                          : "lg:col-span-6";
-
-                const height =
-                  pattern === 0 ||
-                  pattern === 3
-                    ? "lg:h-[430px]"
-                    : "lg:h-[360px]";
-
-                const rotation =
-                  pattern === 0
-                    ? "lg:-rotate-[1deg]"
-                    : pattern === 1
-                      ? "lg:rotate-[1.2deg]"
-                      : pattern === 2
-                        ? "lg:rotate-[.8deg]"
-                        : pattern === 3
-                          ? "lg:-rotate-[.8deg]"
-                          : pattern === 4
-                            ? "lg:rotate-[.6deg]"
-                            : "lg:-rotate-[.6deg]";
-
-                const delay = Math.min(
-                  index * 80,
-                  480
-                );
-
-                return (
-                  <figure
-                    key={`${photo.src}-${index}`}
-                    style={
-                      {
-                        "--delay": `${delay}ms`,
-                      } as CSSProperties
-                    }
-                    className={`
-                      group
-                      relative
-                      h-[300px]
-                      sm:h-[340px]
-                      ${layout}
-                      ${height}
-                      ${rotation}
-                      ${
-                        galleryReveal.visible
-                          ? "translate-y-0 opacity-100"
-                          : "translate-y-10 opacity-0"
-                      }
-                      transition-all
-                      duration-700
-                      ease-out
-                      [transition-delay:var(--delay)]
-                      hover:!rotate-0
-                      hover:-translate-y-2
-                    `}
-                  >
-
-                    {/* =========================================
-                        COLOUR PAPER BEHIND IMAGE
-                    ========================================= */}
-
-                    <div
-                      aria-hidden="true"
-                      className="
-                        absolute
-                        inset-0
-                        translate-x-2
-                        translate-y-2
-                        rounded-[28px]
-                        opacity-20
-                        transition-all
-                        duration-500
-                        group-hover:translate-x-3
-                        group-hover:translate-y-3
-                      "
-                      style={{
-                        backgroundColor:
-                          category.color,
-                      }}
-                    />
-
-                    {/* =========================================
-                        PHOTO CARD
-                    ========================================= */}
-
-                    <div
-                      className="
-                        relative
-                        size-full
-                        overflow-hidden
-                        rounded-[28px]
-                        border-[6px]
-                        border-white
-                        bg-white
-                        shadow-[0_22px_55px_-30px_rgba(52,48,92,.42)]
-                        transition-all
-                        duration-500
-                        group-hover:shadow-[0_30px_65px_-28px_rgba(52,48,92,.5)]
-                      "
+            {category.albums.map((album, albumIndex) => (
+              <section
+                key={album.title + "-" + albumIndex}
+                className={[
+                  "relative rounded-[32px] border border-[#34305c]/10 bg-white/65 p-4 shadow-[0_20px_55px_-38px_rgba(52,48,92,.35)] backdrop-blur-[2px] sm:p-6 lg:p-7",
+                  galleryVisible
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-10 opacity-0",
+                  "transition-all duration-700 ease-out",
+                ].join(" ")}
+              >
+                <div className="mb-7 flex flex-col gap-4 border-b border-[#34305c]/10 pb-6 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-4">
+                    <span
+                      className="grid size-11 shrink-0 place-items-center rounded-2xl text-sm font-black text-white shadow-lg"
+                      style={{ backgroundColor: category.color }}
                     >
-                      <img
-                        src={photo.src}
-                        alt={photo.alt}
-                        loading={
-                          index < 2
-                            ? "eager"
-                            : "lazy"
-                        }
-                        className="
-                          size-full
-                          object-cover
-                          transition-transform
-                          duration-700
-                          ease-out
-                          group-hover:scale-[1.055]
-                        "
-                      />
+                      {String(albumIndex + 1).padStart(2, "0")}
+                    </span>
 
-                      {/* soft overlay */}
+                    <div>
+                      <p
+                        className="text-[10px] font-black uppercase tracking-[.2em]"
+                        style={{ color: category.color }}
+                      >
+                        Activity album
+                      </p>
+                      <h3 className="mt-1 font-serif text-2xl font-bold leading-tight text-[#34305c] sm:text-3xl">
+                        {album.title}
+                      </h3>
+                    </div>
+                  </div>
 
-                      <div
-                        className="
-                          pointer-events-none
-                          absolute
-                          inset-0
-                          bg-gradient-to-t
-                          from-[#34305c]/80
-                          via-[#34305c]/0
-                          to-transparent
-                          opacity-0
-                          transition
-                          duration-500
-                          group-hover:opacity-100
-                        "
-                      />
+                  <span className="w-fit rounded-full bg-[#fffaf2] px-4 py-2 text-xs font-bold text-[#686477] ring-1 ring-[#34305c]/10">
+                    {album.photos.length}{" "}
+                    {album.photos.length === 1 ? "photograph" : "photographs"}
+                  </span>
+                </div>
 
-                      {/* PHOTO NUMBER */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-12 lg:gap-7">
+                  {album.photos.map((photo, index) => {
+                    const pattern = index % 6;
+                    const layout =
+                      pattern === 0
+                        ? "lg:col-span-7"
+                        : pattern === 1
+                          ? "lg:col-span-5"
+                          : pattern === 2
+                            ? "lg:col-span-5"
+                            : pattern === 3
+                              ? "lg:col-span-7"
+                              : "lg:col-span-6";
+                    const height =
+                      pattern === 0 || pattern === 3
+                        ? "lg:h-[430px]"
+                        : "lg:h-[360px]";
+                    const rotation =
+                      pattern === 0
+                        ? "lg:-rotate-[1deg]"
+                        : pattern === 1
+                          ? "lg:rotate-[1.2deg]"
+                          : pattern === 2
+                            ? "lg:rotate-[.8deg]"
+                            : pattern === 3
+                              ? "lg:-rotate-[.8deg]"
+                              : pattern === 4
+                                ? "lg:rotate-[.6deg]"
+                                : "lg:-rotate-[.6deg]";
+                    const delay = Math.min(index * 80, 480);
 
-                      <span
-                        className="
-                          absolute
-                          right-4
-                          top-4
-                          grid
-                          size-9
-                          translate-y-[-6px]
-                          place-items-center
-                          rounded-full
-                          bg-white
-                          text-xs
-                          font-black
-                          opacity-0
-                          shadow-lg
-                          transition-all
-                          duration-300
-                          group-hover:translate-y-0
-                          group-hover:opacity-100
-                        "
-                        style={{
-                          color:
-                            category.color,
+                    return (
+                      <figure
+                        key={photo.src + "-" + index}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={"Open " + photo.alt + " in image viewer"}
+                        onClick={() => setLightboxPhoto(photo)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setLightboxPhoto(photo);
+                          }
                         }}
+                        style={
+                          {
+                            "--delay": String(delay) + "ms",
+                          } as CSSProperties
+                        }
+                        className={[
+                          "group relative h-[300px] cursor-zoom-in sm:h-[340px]",
+                          layout,
+                          height,
+                          rotation,
+                          galleryVisible
+                            ? "translate-y-0 opacity-100"
+                            : "translate-y-10 opacity-0",
+                          "transition-all duration-700 ease-out [transition-delay:var(--delay)] hover:!rotate-0 hover:-translate-y-2",
+                        ].join(" ")}
                       >
-                        {String(
-                          index + 1
-                        ).padStart(2, "0")}
-                      </span>
+                        <div
+                          aria-hidden="true"
+                          className="absolute inset-0 translate-x-2 translate-y-2 rounded-[28px] opacity-20 transition-all duration-500 group-hover:translate-x-3 group-hover:translate-y-3"
+                          style={{ backgroundColor: category.color }}
+                        />
 
-                      {/* CAPTION */}
+                        <div className="relative size-full overflow-hidden rounded-[28px] border-[6px] border-white bg-white shadow-[0_22px_55px_-30px_rgba(52,48,92,.42)] transition-all duration-500 group-hover:shadow-[0_30px_65px_-28px_rgba(52,48,92,.5)]">
+                          <img
+                            src={photo.src}
+                            alt={photo.alt}
+                            loading={albumIndex === 0 && index < 2 ? "eager" : "lazy"}
+                            className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.055]"
+                          />
 
-                      <figcaption
-                        className="
-                          absolute
-                          inset-x-0
-                          bottom-0
-                          translate-y-5
-                          p-5
-                          opacity-0
-                          transition-all
-                          duration-500
-                          group-hover:translate-y-0
-                          group-hover:opacity-100
-                          sm:p-6
-                        "
-                      >
-                        <div className="flex items-end gap-3">
+                          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#34305c]/80 via-[#34305c]/0 to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
+
                           <span
-                            className="
-                              grid
-                              size-9
-                              shrink-0
-                              place-items-center
-                              rounded-xl
-                              text-white
-                              shadow-md
-                            "
-                            style={{
-                              backgroundColor:
-                                category.color,
-                            }}
+                            className="absolute right-4 top-4 grid size-9 translate-y-[-6px] place-items-center rounded-full bg-white text-xs font-black opacity-0 shadow-lg transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+                            style={{ color: category.color }}
                           >
-                            <Sparkles
-                              size={16}
-                            />
+                            {String(index + 1).padStart(2, "0")}
                           </span>
 
-                          <p className="text-sm font-bold leading-6 text-white sm:text-[15px]">
-                            {photo.alt}
-                          </p>
+                          <figcaption className="absolute inset-x-0 bottom-0 translate-y-5 p-5 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 sm:p-6">
+                            <div className="flex items-end gap-3">
+                              <span
+                                className="grid size-9 shrink-0 place-items-center rounded-xl text-white shadow-md"
+                                style={{ backgroundColor: category.color }}
+                              >
+                                <ImageIcon size={16} />
+                              </span>
+
+                              <p className="text-sm font-bold leading-6 text-white sm:text-[15px]">
+                                {photo.alt}
+                              </p>
+                            </div>
+                          </figcaption>
                         </div>
-                      </figcaption>
-                    </div>
 
-                    {/* =========================================
-                        TAPE EFFECT
-                    ========================================= */}
+                        {index % 3 === 0 && (
+                          <span
+                            aria-hidden="true"
+                            className="absolute -top-2 left-1/2 h-5 w-20 -translate-x-1/2 -rotate-2 bg-[#ffd34e]/75 shadow-sm"
+                          />
+                        )}
 
-                    {index % 3 === 0 && (
-                      <span
-                        aria-hidden="true"
-                        className="
-                          absolute
-                          -top-2
-                          left-1/2
-                          h-5
-                          w-20
-                          -translate-x-1/2
-                          -rotate-2
-                          bg-[#ffd34e]/75
-                          shadow-sm
-                        "
-                      />
-                    )}
-
-                    {/* =========================================
-                        SMALL STAR
-                    ========================================= */}
-
-                    {index % 4 === 1 && (
-                      <span
-                        aria-hidden="true"
-                        className="
-                          absolute
-                          -right-3
-                          -top-3
-                          grid
-                          size-10
-                          rotate-12
-                          place-items-center
-                          rounded-xl
-                          bg-[#ef5f6c]
-                          text-lg
-                          text-white
-                          shadow-lg
-                          transition
-                          duration-500
-                          group-hover:rotate-[25deg]
-                        "
-                      >
-                        ★
-                      </span>
-                    )}
-                  </figure>
-                );
-              }
-            )}
+                        {index % 4 === 1 && (
+                          <span
+                            aria-hidden="true"
+                            className="absolute -right-3 -top-3 grid size-10 rotate-12 place-items-center rounded-xl bg-[#ef5f6c] text-lg text-white shadow-lg transition duration-500 group-hover:rotate-[25deg]"
+                          >
+                            ★
+                          </span>
+                        )}
+                      </figure>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
           </div>
-
           {data && category.photos.length === 0 && (
             <div className="rounded-[24px] border border-[#34305c]/10 bg-white px-6 py-14 text-center text-[#6d697a] shadow-sm">
               Albums will appear here when photographs are published.
@@ -828,6 +747,75 @@ export function KidsGalleryCategoryPage() {
           }
         `}</style>
       </main>
+
+      {lightboxPhoto && lightboxIndex >= 0 && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Kids gallery image viewer"
+          className="fixed inset-0 z-[9990] flex items-center justify-center bg-[#071b34]/92 p-3 backdrop-blur-md sm:p-6"
+          onPointerDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setLightboxPhoto(null);
+            }
+          }}
+        >
+          <div className="absolute left-4 right-4 top-4 z-20 flex items-center justify-between gap-4 sm:left-6 sm:right-6 sm:top-6">
+            <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold text-white backdrop-blur-md">
+              {lightboxIndex + 1} / {photos.length}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setLightboxPhoto(null)}
+              aria-label="Close image viewer"
+              className="grid size-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:rotate-90 hover:bg-white hover:text-[#34305c]"
+            >
+              <X size={21} />
+            </button>
+          </div>
+
+          {photos.length > 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                const previousIndex =
+                  (lightboxIndex - 1 + photos.length) % photos.length;
+                setLightboxPhoto(photos[previousIndex]);
+              }}
+              aria-label="View previous photograph"
+              className="absolute left-3 z-20 grid size-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:bg-white hover:text-[#34305c] sm:left-6 sm:size-12"
+            >
+              <ChevronLeft size={23} />
+            </button>
+          )}
+
+          <figure className="flex max-h-[calc(100vh-6rem)] max-w-[min(94vw,1200px)] flex-col items-center overflow-hidden rounded-[22px] bg-white p-2 shadow-[0_30px_100px_rgba(0,0,0,.5)] sm:p-3">
+            <img
+              src={lightboxPhoto.src}
+              alt={lightboxPhoto.alt}
+              className="max-h-[calc(100vh-10rem)] max-w-full rounded-[16px] object-contain"
+            />
+            <figcaption className="max-w-3xl px-4 py-3 text-center text-sm font-bold text-[#34305c] sm:text-base">
+              {lightboxPhoto.alt}
+            </figcaption>
+          </figure>
+
+          {photos.length > 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                const nextIndex = (lightboxIndex + 1) % photos.length;
+                setLightboxPhoto(photos[nextIndex]);
+              }}
+              aria-label="View next photograph"
+              className="absolute right-3 z-20 grid size-11 place-items-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:bg-white hover:text-[#34305c] sm:right-6 sm:size-12"
+            >
+              <ChevronRight size={23} />
+            </button>
+          )}
+        </div>
+      )}
     </>
   );
 }

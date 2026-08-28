@@ -3,6 +3,8 @@ import { PageBanner } from "../components/PageBanner";
 type AboutDetailPageProps = {
   title: string;
   description: string;
+  bannerImage?: string | null;
+  bannerImageUrl?: string | null;
   eyebrow: string;
   introduction: string;
   paragraphs: string[];
@@ -14,6 +16,8 @@ type AboutDetailPageProps = {
 export function AboutDetailPage({
   title,
   description,
+  bannerImage,
+  bannerImageUrl,
   eyebrow,
   introduction,
   paragraphs,
@@ -23,7 +27,13 @@ export function AboutDetailPage({
 }: AboutDetailPageProps) {
   return (
     <>
-      <PageBanner key={title} title={title} description={description} />
+      <PageBanner
+        key={title}
+        title={title}
+        description={description}
+        image={bannerImage}
+        imageUrl={bannerImageUrl}
+      />
       <section className="relative overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
         <div
           className="absolute -right-32 top-10 size-96 rounded-full border border-navy/5"
@@ -38,7 +48,7 @@ export function AboutDetailPage({
           <div className="order-2 lg:order-1">
             <p className="eyebrow flex items-center gap-3 text-gold-dark">
               <span className="h-px w-10 bg-gold" />
-              {eyebrow}
+              {eyebrow} 
             </p>
             <h2 className="mt-5 max-w-2xl font-serif text-4xl leading-tight text-navy sm:text-5xl">
               {title}

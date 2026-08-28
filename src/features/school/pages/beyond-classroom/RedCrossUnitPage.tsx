@@ -15,14 +15,18 @@ import { applyPageSeo, type PageSeo } from "../../utils/pageSeo";
 type ActivityCard = {
   title?: string;
   description?: string;
-  image?: string;
-  image_url?: string;
+  images?: Array<{
+    image?: string;
+    image_url?: string;
+  }>;
 };
 
 type RedCrossSection = {
   type: string;
   title: string;
   description?: string | null;
+  image?: string | null;
+  image_url?: string | null;
   is_active: boolean;
   settings?: { cards?: ActivityCard[] } | [];
 };
@@ -43,23 +47,29 @@ function mediaUrl(image?: string, imageUrl?: string) {
 }
 
 function plainText(html?: string | null) {
-  return html?.replace(/<[^>]*>/g, "").trim() || "";
+  return (
+    html
+      ?.replace(/&nbsp;|&#160;|&#x0*a0;/gi, " ")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s+/g, " ")
+      .trim() || ""
+  );
 }
-const coreAreas = [
-  "Promoting humanitarian principles and values",
-  "Disaster response",
-  "Disaster preparedness",
-  "Health and care in the community",
-];
 
-const activities = [
-  "Expert talk on First Aid Kit at home, school and in vehicles",
-  "Talk on importance of first aid in our life",
-  "Seminar on various recovery positions during injury",
-  "Hosting District level competitions",
-  "First Aid Training",
-];
+function contentParagraphs(html?: string | null) {
+  return Array.from(html?.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi) ?? [])
+    .map((match) => plainText(match[1]))
+    .filter(Boolean);
+}
 
+function contentLists(html?: string | null) {
+  return Array.from(html?.matchAll(/<ul\b[^>]*>([\s\S]*?)<\/ul>/gi) ?? []).map(
+    (list) =>
+      Array.from(list[1].matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi))
+        .map((item) => plainText(item[1]))
+        .filter(Boolean),
+  );
+}
 export function RedCrossUnitPage() {
   const { data: page } = useQuery({
     queryKey: ["school-page", "red-cross-unit"],
@@ -80,17 +90,23 @@ export function RedCrossUnitPage() {
     content?.settings && !Array.isArray(content.settings)
       ? content.settings.cards ?? []
       : [];
-  const apiImages = cards
-    .map((card) => mediaUrl(card.image, card.image_url))
-    .filter((image): image is string => Boolean(image));
-  const gallery = apiImages.length >= 2 ? apiImages : ["/images/4.webp", "/images/5.webp"];
-  const cardDescriptions = cards.map((card) => plainText(card.description)).filter(Boolean);
-  const apiContent = cardDescriptions.length
-    ? cardDescriptions.join(" ")
-    : plainText(content?.description);
-  const description =
-    plainText(banner?.description) ||
-    "St. John Ambulance (India) Indian Red Cross Society District Branch SAS Nagar has sanctioned this coveted unit to the school.";
+  const primaryCard = cards[0];
+  const cardHtml = primaryCard?.description || content?.description;
+  const paragraphs = contentParagraphs(cardHtml);
+  const lists = contentLists(cardHtml);
+  const introduction = paragraphs[0] || "";
+  const coreAreasHeading = paragraphs[1] || "";
+  const coreAreas = lists[0] || [];
+  const humanitarianValues = paragraphs[2] || "";
+  const activitiesHeading = paragraphs[3] || "";
+  const activities = lists[1] || [];
+  const gallery = cards.flatMap((card) =>
+    (card.images ?? []).flatMap((image) => {
+      const src = mediaUrl(image.image, image.image_url);
+      return src ? [src] : [];
+    }),
+  );
+  const description = plainText(banner?.description);
 
   useEffect(() => {
     applyPageSeo(page?.seo);
@@ -103,6 +119,8 @@ export function RedCrossUnitPage() {
       ===================================================== */}
 
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={banner?.title || page?.title || "Red Cross Unit"}
         description={description}
       />
@@ -198,6 +216,7 @@ export function RedCrossUnitPage() {
               IMAGE GALLERY
           ================================================= */}
 
+          {gallery.length > 0 && (
           <div className="relative mx-auto mt-12 max-w-6xl sm:mt-14">
             {/* Navy backing */}
 
@@ -230,93 +249,55 @@ export function RedCrossUnitPage() {
             />
 
             <div className="relative grid gap-4 lg:grid-cols-2">
-              {/* IMAGE 01 */}
+              {gallery.map((image, index) => (
+                <figure
+                  key={image}
+                  className="
+                    group
+                    overflow-hidden
+                    rounded-[26px]
+                    bg-white
+                    p-2
+                    shadow-[0_25px_65px_-38px_rgba(16,42,67,.55)]
+                  "
+                >
+                  <div className="relative overflow-hidden rounded-[20px] bg-slate-100">
+                    <img
+                      src={image}
+                      alt={
+                        (primaryCard?.title || page?.title || "Red Cross Unit") +
+                        " activity " +
+                        (index + 1)
+                      }
+                      loading={index < 2 ? "eager" : "lazy"}
+                      className="
+                        aspect-[16/9]
+                        size-full
+                        object-cover
+                        transition
+                        duration-700
+                        ease-out
+                        group-hover:scale-[1.025]
+                      "
+                    />
 
-              <figure
-                className="
-                  group
-                  overflow-hidden
-                  rounded-[26px]
-                  bg-white
-                  p-2
-                  shadow-[0_25px_65px_-38px_rgba(16,42,67,.55)]
-                "
-              >
-                <div className="relative overflow-hidden rounded-[20px] bg-slate-100">
-                  <img
-                    src={gallery[0]}
-                    alt="Paragon School Red Cross Unit first aid activities"
-                    className="
-                      aspect-[16/9]
-                      size-full
-                      object-cover
-                      transition
-                      duration-700
-                      ease-out
-                      group-hover:scale-[1.025]
-                    "
-                  />
-
-                  <div
-                    aria-hidden="true"
-                    className="
-                      pointer-events-none
-                      absolute
-                      inset-x-0
-                      bottom-0
-                      h-20
-                      bg-gradient-to-t
-                      from-navy/20
-                      to-transparent
-                    "
-                  />
-                </div>
-              </figure>
-
-              {/* IMAGE 02 */}
-
-              <figure
-                className="
-                  group
-                  overflow-hidden
-                  rounded-[26px]
-                  bg-white
-                  p-2
-                  shadow-[0_25px_65px_-38px_rgba(16,42,67,.55)]
-                "
-              >
-                <div className="relative overflow-hidden rounded-[20px] bg-slate-100">
-                  <img
-                    src={gallery[1]}
-                    alt="Students participating in Red Cross Unit programmes"
-                    className="
-                      aspect-[16/9]
-                      size-full
-                      object-cover
-                      transition
-                      duration-700
-                      ease-out
-                      group-hover:scale-[1.025]
-                    "
-                  />
-
-                  <div
-                    aria-hidden="true"
-                    className="
-                      pointer-events-none
-                      absolute
-                      inset-x-0
-                      bottom-0
-                      h-20
-                      bg-gradient-to-t
-                      from-navy/20
-                      to-transparent
-                    "
-                  />
-                </div>
-              </figure>
+                    <div
+                      aria-hidden="true"
+                      className="
+                        pointer-events-none
+                        absolute
+                        inset-x-0
+                        bottom-0
+                        h-20
+                        bg-gradient-to-t
+                        from-navy/20
+                        to-transparent
+                      "
+                    />
+                  </div>
+                </figure>
+              ))}
             </div>
-
             {/* Number/detail */}
 
             <span
@@ -340,6 +321,8 @@ export function RedCrossUnitPage() {
               RC
             </span>
           </div>
+
+          )}
 
           {/* =================================================
               INTRODUCTION
@@ -368,7 +351,7 @@ export function RedCrossUnitPage() {
                 </p>
 
                 <h3 className="mt-3 font-serif text-2xl leading-tight text-navy sm:text-3xl">
-                  Service & Humanity
+                  {primaryCard?.title || content?.title || page?.title}
                 </h3>
 
                 <div className="mt-5 h-[2px] w-10 bg-gold" />
@@ -393,7 +376,7 @@ export function RedCrossUnitPage() {
                 />
 
                 <p className="text-[15px] leading-8 text-slate-600 sm:text-base">
-                  {apiContent || "St. John Ambulance (India) Indian Red Cross Society District Branch SAS Nagar has sanctioned this coveted unit to the school. Various First Aid trainings, seminars, essay writing competitions, painting competitions and talks are organized in the school."}
+                  {introduction}
                 </p>
               </article>
             </div>
@@ -410,8 +393,7 @@ export function RedCrossUnitPage() {
               </p>
 
               <h2 className="mt-3 font-serif text-3xl leading-tight text-navy sm:text-4xl">
-                The Indian Red Cross&apos;s programmes are grouped into four
-                main core areas:
+                {coreAreasHeading}
               </h2>
 
               <div className="mt-5 h-[2px] w-12 bg-gold" />
@@ -522,9 +504,7 @@ export function RedCrossUnitPage() {
               />
 
               <p className="relative max-w-5xl text-[15px] leading-8 text-white/80 sm:text-base">
-                It promotes the humanitarian values, which encourage respect
-                for other human beings and a willingness to work together to
-                find solutions to problems.
+                {humanitarianValues}
               </p>
             </div>
           </section>
@@ -543,8 +523,7 @@ export function RedCrossUnitPage() {
                 </p>
 
                 <h2 className="mt-3 font-serif text-3xl leading-tight text-navy sm:text-4xl">
-                  Following are some of the activities conducted by Paragon Red
-                  Cross Unit:
+                  {activitiesHeading}
                 </h2>
 
                 <div className="mt-5 h-[2px] w-12 bg-gold" />

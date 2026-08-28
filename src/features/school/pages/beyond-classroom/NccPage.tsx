@@ -1,64 +1,136 @@
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   ArrowLeft,
   Check,
+  ExternalLink,
+  Image as ImageIcon,
   Plane,
   Shield,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
+
 import { PageBanner } from "../../../../components/PageBanner";
 import { schoolApi } from "../../api/schoolApi";
 import { applyPageSeo, type PageSeo } from "../../utils/pageSeo";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
+type ActivityCardImage = {
+  image?: string | null;
+  image_url?: string | null;
+};
+
 type ActivityCard = {
   title?: string;
-  description?: string;
-  image?: string;
-  image_url?: string;
+  description?: string | null;
+  images?: ActivityCardImage[];
 };
 
 type NccSection = {
+  id?: number;
   type: string;
-  title: string;
+  name?: string;
+  title?: string | null;
   description?: string | null;
+  button_text?: string | null;
+  button_url?: string | null;
+  image?: string | null;
+  image_url?: string | null;
+  settings?:
+    | {
+        cards?: ActivityCard[];
+      }
+    | [];
+  sort_order?: number;
   is_active: boolean;
-  settings?: { cards?: ActivityCard[] } | [];
 };
 
 type NccPageData = {
+  id?: number;
+  site_id?: number;
   title: string;
   slug: string;
+  template?: string;
   seo?: PageSeo;
   sections: NccSection[];
 };
 
-const storageBaseUrl = "https://lightskyblue-eland-620788.hostingersite.com/storage/";
+/* =========================================================
+   MEDIA
+========================================================= */
 
-function mediaUrl(image?: string, imageUrl?: string) {
-  if (image) return `${storageBaseUrl}${image.replace(/^\/+/, "")}`;
-  if (imageUrl && !imageUrl.includes("localhost")) return imageUrl;
+const storageBaseUrl =
+  "https://lightskyblue-eland-620788.hostingersite.com/storage/";
+
+function mediaUrl(
+  image?: string | null,
+  imageUrl?: string | null,
+) {
+  if (image) {
+    return `${storageBaseUrl}${image.replace(/^\/+/, "")}`;
+  }
+
+  if (imageUrl && !imageUrl.includes("localhost")) {
+    return imageUrl;
+  }
+
   return undefined;
 }
 
-function plainText(html?: string | null) {
-  return html?.replace(/<[^>]*>/g, "").trim() || "";
-}
-const armyActivities = [
-  "Ten-Day Annual Training Camp (ATC) at the NCC Air Academy, Chandigarh.",
-  "Aviation Awareness Programs, including basics of aeromodelling and air force orientation.",
-  "Cleanliness and Environmental Awareness Drives, such as tree plantation and Swachh Bharat initiatives.",
-  "Anti-Drug Awareness Rallies to promote a healthy and drug-free lifestyle.",
-  "Certification of 20+ students annually with the prestigious 'A' Certificate under the NCC Air Wing.",
-];
+/* =========================================================
+   HTML HELPERS
+========================================================= */
 
-const airWingActivities = [
-  "Ten days annual training camp (ATC) at NCC academy Ropar",
-  "Tree Plantation Drive",
-  "Drugs awareness rally",
-  "Participation of cadets in district level Republic Day and Independence day celebrations as a proud parade contingent",
-  "Certification of 25 students every year with 'A' certificate",
-];
+function plainText(html?: string | null) {
+  if (!html) return "";
+
+  return html
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/p>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractParagraphs(html?: string | null) {
+  if (!html) return [];
+
+  const matches = [...html.matchAll(/<p[^>]*>(.*?)<\/p>/gis)];
+
+  return matches
+    .map((match) => plainText(match[1]))
+    .filter(Boolean);
+}
+
+function extractListItems(html?: string | null) {
+  if (!html) return [];
+
+  const matches = [...html.matchAll(/<li[^>]*>(.*?)<\/li>/gis)];
+
+  return matches
+    .map((match) => plainText(match[1]))
+    .filter(Boolean);
+}
+
+function extractLinks(html?: string | null) {
+  if (!html) return [];
+
+  const matches = [
+    ...html.matchAll(
+      /<a[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gis,
+    ),
+  ];
+
+  return matches
+    .map((match) => ({
+      url: match[1],
+      text: plainText(match[2]) || "Open Link",
+    }))
+    .filter((link) => Boolean(link.url));
+}
 
 /* =========================================================
    ACTIVITY LIST
@@ -70,28 +142,83 @@ function ActivityList({
   activities: string[];
 }) {
   return (
-    <ul className="mt-5 space-y-3">
-      {activities.map((activity) => (
-        <li
-          key={activity}
-          className="flex items-start gap-3 text-[15px] leading-7 text-slate-600 sm:text-base"
+    <div
+      className="
+        overflow-hidden
+        rounded-[26px]
+        border
+        border-slate-200/80
+        bg-white
+        shadow-[0_22px_65px_-45px_rgba(16,42,67,.45)]
+      "
+    >
+      {activities.map((activity, index) => (
+        <div
+          key={`${activity}-${index}`}
+          className="
+            group
+            flex
+            items-start
+            gap-4
+            border-b
+            border-slate-100
+            px-6
+            py-5
+            transition
+            duration-300
+            last:border-b-0
+            hover:bg-[#fbfaf7]
+            sm:px-7
+          "
         >
-          <span className="mt-1.5 grid size-5 shrink-0 place-items-center rounded-full bg-cream text-gold-dark">
-            <Check size={11} strokeWidth={3} />
+          <span
+            className="
+              mt-0.5
+              grid
+              size-8
+              shrink-0
+              place-items-center
+              rounded-lg
+              bg-[#f8f2df]
+              text-gold-dark
+              transition
+              duration-300
+              group-hover:bg-navy
+              group-hover:text-white
+            "
+          >
+            <Check size={14} strokeWidth={3} />
           </span>
 
-          <span>{activity}</span>
-        </li>
+          <div className="min-w-0 flex-1">
+            <span
+              className="
+                mb-1
+                block
+                text-[10px]
+                font-bold
+                tracking-[.14em]
+                text-slate-400
+              "
+            >
+              {String(index + 1).padStart(2, "0")}
+            </span>
+
+            <p className="text-[14px] leading-7 text-slate-600 sm:text-[15px]">
+              {activity}
+            </p>
+          </div>
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }
 
 /* =========================================================
-   IMAGE PAIR
+   IMAGE GALLERY
 ========================================================= */
 
-function GalleryPair({
+function WingGallery({
   images,
   title,
   number,
@@ -102,18 +229,23 @@ function GalleryPair({
   number: string;
   reverse?: boolean;
 }) {
+  if (!images.length) return null;
+
   return (
     <div className="relative">
-      {/* BACK DECORATION */}
+      {/* background shape */}
 
       <div
         aria-hidden="true"
         className={`
+          pointer-events-none
           absolute
           bottom-[-18px]
+          hidden
           h-[70%]
           w-[72%]
           rounded-[28px]
+          sm:block
           ${
             reverse
               ? "-right-[18px] bg-gold/20"
@@ -122,16 +254,19 @@ function GalleryPair({
         `}
       />
 
-      {/* DECORATIVE RING */}
+      {/* ring */}
 
       <div
         aria-hidden="true"
         className={`
+          pointer-events-none
           absolute
           -top-5
+          hidden
           size-28
           rounded-full
           border-[16px]
+          lg:block
           ${
             reverse
               ? "-left-5 border-navy/[.07]"
@@ -140,15 +275,21 @@ function GalleryPair({
         `}
       />
 
-      {/* IMAGES */}
+      {/* images */}
 
-      <div className="relative grid gap-3 sm:grid-cols-2">
+      <div
+        className={`
+          relative
+          grid
+          gap-4
+          ${images.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"}
+        `}
+      >
         {images.map((image, index) => (
           <figure
-            key={image}
+            key={`${image}-${index}`}
             className="
               group
-              relative
               overflow-hidden
               rounded-[24px]
               bg-white
@@ -156,40 +297,59 @@ function GalleryPair({
               shadow-[0_22px_60px_-35px_rgba(16,42,67,.5)]
             "
           >
-            <div className="relative overflow-hidden rounded-[18px] bg-slate-100">
+            <div
+              className="
+                relative
+                flex
+                aspect-[4/3]
+                items-center
+                justify-center
+                overflow-hidden
+                rounded-[18px]
+                bg-[#eef1f3]
+              "
+            >
               <img
                 src={image}
-                alt={`${title} activities ${index + 1}`}
+                alt={`${title} activity ${index + 1}`}
+                loading={index < 2 ? "eager" : "lazy"}
                 className="
-                  aspect-[4/3]
-                  size-full
-                  object-cover
+                  h-full
+                  w-full
+                  object-contain
                   transition
                   duration-700
                   ease-out
-                  group-hover:scale-[1.035]
+                  group-hover:scale-[1.02]
                 "
               />
 
-              <div
-                aria-hidden="true"
+              <span
                 className="
-                  pointer-events-none
                   absolute
-                  inset-x-0
-                  bottom-0
-                  h-20
-                  bg-gradient-to-t
-                  from-navy/20
-                  to-transparent
+                  bottom-3
+                  right-3
+                  grid
+                  size-8
+                  place-items-center
+                  rounded-full
+                  bg-navy/80
+                  text-white
+                  opacity-0
+                  backdrop-blur
+                  transition
+                  duration-300
+                  group-hover:opacity-100
                 "
-              />
+              >
+                <ImageIcon size={14} />
+              </span>
             </div>
           </figure>
         ))}
       </div>
 
-      {/* NUMBER */}
+      {/* number */}
 
       <span
         className={`
@@ -216,68 +376,382 @@ function GalleryPair({
 }
 
 /* =========================================================
+   NCC WING
+========================================================= */
+
+function NccWing({
+  card,
+  index,
+}: {
+  card: ActivityCard;
+  index: number;
+}) {
+  const isAirWing =
+    card.title?.toLowerCase().includes("air wing") ?? false;
+
+  const images =
+    card.images
+      ?.map((item) => mediaUrl(item.image, item.image_url))
+      .filter((image): image is string => Boolean(image)) ?? [];
+
+  const paragraphs = extractParagraphs(card.description);
+
+  const activities = extractListItems(card.description);
+
+  const links = extractLinks(card.description);
+
+  /*
+   * First paragraph = description
+   * Second paragraph = activities heading
+   * Last paragraph may contain the video link.
+   */
+
+  const mainDescription = paragraphs[0] || "";
+
+  const activitiesHeading =
+    paragraphs.length > 1 ? paragraphs[1] : "";
+
+  const linkParagraph =
+    links.length > 0 && paragraphs.length > 2
+      ? paragraphs[paragraphs.length - 1]
+      : "";
+
+  return (
+    <section
+      className={`
+        mx-auto
+        max-w-6xl
+        ${index === 0 ? "mt-16 sm:mt-20" : "mt-20 sm:mt-24"}
+      `}
+    >
+      {/* =====================================================
+          MAIN WING
+      ===================================================== */}
+
+      <div
+        className="
+          grid
+          items-center
+          gap-12
+          lg:grid-cols-2
+          lg:gap-16
+        "
+      >
+        {/* IMAGE */}
+
+        <div
+          className={
+            isAirWing
+              ? "order-1 lg:order-2"
+              : "order-1"
+          }
+        >
+          <WingGallery
+            images={images}
+            title={card.title || "NCC"}
+            number={String(index + 1).padStart(2, "0")}
+            reverse={isAirWing}
+          />
+        </div>
+
+        {/* CONTENT */}
+
+        <article
+          className={
+            isAirWing
+              ? "order-2 lg:order-1"
+              : "order-2"
+          }
+        >
+          <div
+            className={`
+              grid
+              size-13
+              place-items-center
+              rounded-2xl
+              shadow-[0_12px_30px_-15px_rgba(16,42,67,.5)]
+              ${
+                isAirWing
+                  ? "bg-cream text-gold-dark"
+                  : "bg-navy text-gold"
+              }
+            `}
+          >
+            {isAirWing ? (
+              <Plane size={23} strokeWidth={1.8} />
+            ) : (
+              <Shield size={23} strokeWidth={1.8} />
+            )}
+          </div>
+
+          <p
+            className="
+              mt-6
+              text-[11px]
+              font-bold
+              uppercase
+              tracking-[.2em]
+              text-gold-dark
+            "
+          >
+            {isAirWing ? "Air Wing" : "Army Wing"}
+          </p>
+
+          <h2
+            className="
+              mt-3
+              font-serif
+              text-3xl
+              leading-tight
+              text-navy
+              sm:text-4xl
+            "
+          >
+            {card.title || "National Cadet Corps"}
+          </h2>
+
+          <div className="mt-5 h-[2px] w-10 bg-gold" />
+
+          {mainDescription && (
+            <p
+              className="
+                mt-6
+                text-[15px]
+                leading-8
+                text-slate-600
+                sm:text-base
+              "
+            >
+              {mainDescription}
+            </p>
+          )}
+        </article>
+      </div>
+
+      {/* =====================================================
+          ACTIVITIES
+      ===================================================== */}
+
+      {activities.length > 0 && (
+        <div
+          className="
+            mt-14
+            grid
+            gap-8
+            lg:grid-cols-[.34fr_.66fr]
+            lg:gap-12
+          "
+        >
+          {/* LEFT HEADING */}
+
+          <div>
+            <p
+              className="
+                text-[11px]
+                font-bold
+                uppercase
+                tracking-[.2em]
+                text-gold-dark
+              "
+            >
+              Activities
+            </p>
+
+            {activitiesHeading && (
+              <h3
+                className="
+                  mt-3
+                  font-serif
+                  text-2xl
+                  leading-tight
+                  text-navy
+                  sm:text-3xl
+                "
+              >
+                {activitiesHeading}
+              </h3>
+            )}
+
+            <div className="mt-5 h-[2px] w-10 bg-gold" />
+          </div>
+
+          {/* RIGHT */}
+
+          <div>
+            <ActivityList activities={activities} />
+
+            {/* API LINKS */}
+
+            {links.length > 0 && (
+              <div
+                className="
+                  mt-6
+                  rounded-[20px]
+                  border
+                  border-gold/20
+                  bg-[#f8f2df]/60
+                  p-5
+                  sm:flex
+                  sm:items-center
+                  sm:justify-between
+                  sm:gap-5
+                "
+              >
+                <div>
+                  <p
+                    className="
+                      text-[10px]
+                      font-bold
+                      uppercase
+                      tracking-[.16em]
+                      text-gold-dark
+                    "
+                  >
+                    Watch NCC
+                  </p>
+
+                  <p
+                    className="
+                      mt-2
+                      text-sm
+                      leading-6
+                      text-slate-600
+                    "
+                  >
+                    {linkParagraph ||
+                      "Watch the thrilling moments of cadets soaring the skies here."}
+                  </p>
+                </div>
+
+                <a
+                  href={links[0].url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="
+                    group
+                    mt-4
+                    inline-flex
+                    shrink-0
+                    items-center
+                    gap-2
+                    rounded-full
+                    bg-navy
+                    px-5
+                    py-3
+                    text-xs
+                    font-bold
+                    text-white
+                    transition
+                    duration-300
+                    hover:-translate-y-0.5
+                    hover:bg-gold-dark
+                    sm:mt-0
+                  "
+                >
+                  {links[0].text}
+
+                  <ExternalLink
+                    size={14}
+                    className="
+                      transition-transform
+                      duration-300
+                      group-hover:-translate-y-0.5
+                      group-hover:translate-x-0.5
+                    "
+                  />
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* =========================================================
    PAGE
 ========================================================= */
 
 export function NccPage() {
   const { data: page } = useQuery({
     queryKey: ["school-page", "ncc"],
+
     queryFn: async () => {
-      const response = await schoolApi.get<{ data: NccPageData }>("pages/ncc");
+      const response = await schoolApi.get<{
+        data: NccPageData;
+      }>("pages/ncc");
+
       return response.data.data;
     },
   });
+
+  /* =======================================================
+     SECTIONS
+  ======================================================= */
+
   const banner = page?.sections.find(
-    (section) => section.type === "home_banner" && section.is_active,
+    (section) =>
+      section.type === "home_banner" &&
+      section.is_active,
   );
+
   const content = page?.sections.find(
-    (section) => section.type === "activity_cards_content" && section.is_active,
+    (section) =>
+      section.type === "activity_cards_content" &&
+      section.is_active,
   );
+
   const cards =
-    content?.settings && !Array.isArray(content.settings)
+    content?.settings &&
+    !Array.isArray(content.settings)
       ? content.settings.cards ?? []
       : [];
-  const apiImages = cards
-    .map((card) => mediaUrl(card.image, card.image_url))
-    .filter((image): image is string => Boolean(image));
-  const gallery = apiImages.length >= 4
-    ? apiImages
-    : ["/images/8.webp", "/images/9.webp", "/images/10.webp", "/images/11.webp"];
-  const apiActivities = cards
-    .map((card) => card.title || plainText(card.description))
-    .filter((activity): activity is string => Boolean(activity));
-  const splitAt = Math.ceil(apiActivities.length / 2);
-  const displayedArmyActivities = apiActivities.length
-    ? apiActivities.slice(0, splitAt)
-    : armyActivities;
-  const displayedAirActivities = apiActivities.length
-    ? apiActivities.slice(splitAt)
-    : airWingActivities;
-  const apiContent = plainText(content?.description);
-  const description =
-    plainText(banner?.description) ||
-    "National Cadet Corps facilities for Paragon students.";
+
+  /* =======================================================
+     SEO
+  ======================================================= */
 
   useEffect(() => {
     applyPageSeo(page?.seo);
   }, [page]);
+
+  /* =======================================================
+     BANNER
+  ======================================================= */
+
+  const bannerDescription =
+    plainText(banner?.description) ||
+    "Explore NCC at Paragon Senior School.";
+
   return (
     <main className="overflow-hidden bg-[#fcfbf8]">
+
       {/* =====================================================
           BANNER
       ===================================================== */}
 
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={banner?.title || page?.title || "NCC"}
-        description={description}
+        description={bannerDescription}
       />
 
       {/* =====================================================
-          MAIN CONTENT
+          CONTENT
       ===================================================== */}
 
-      <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">
-        {/* BACKGROUND CIRCLES */}
+      <section
+        className="
+          relative
+          overflow-hidden
+          py-16
+          sm:py-20
+          lg:py-24
+        "
+      >
+        {/* BACKGROUND DECORATION */}
 
         <div
           aria-hidden="true"
@@ -321,203 +795,143 @@ export function NccPage() {
         />
 
         <div className="container relative">
+
           {/* =================================================
-              INTRO HEADING
+              INTRODUCTION
           ================================================= */}
 
-          <div className="mx-auto max-w-4xl text-center">
-            <p className="text-[11px] font-bold uppercase tracking-[.22em] text-gold-dark">
+          <header className="mx-auto max-w-4xl text-center">
+
+            <p
+              className="
+                text-[11px]
+                font-bold
+                uppercase
+                tracking-[.22em]
+                text-gold-dark
+              "
+            >
               National Cadet Corps
             </p>
 
-            <h2 className="mt-4 font-serif text-3xl leading-tight text-navy sm:text-4xl lg:text-5xl">
-              {content?.title || page?.title || "NCC at Paragon School"}
+            <h2
+              className="
+                mt-4
+                font-serif
+                text-3xl
+                leading-tight
+                text-navy
+                sm:text-4xl
+                lg:text-5xl
+              "
+            >
+              {content?.title ||
+                page?.title ||
+                "NCC"}
             </h2>
 
             <div
               aria-hidden="true"
-              className="mx-auto mt-6 flex items-center justify-center gap-2"
+              className="
+                mx-auto
+                mt-6
+                flex
+                items-center
+                justify-center
+                gap-2
+              "
             >
               <span className="h-[2px] w-10 bg-gold" />
+
               <span className="size-1.5 rotate-45 bg-gold" />
+
               <span className="h-[2px] w-10 bg-gold" />
             </div>
-          </div>
+
+          </header>
 
           {/* =================================================
-              ARMY WING
-          ===================================================== */}
+              DYNAMIC NCC WINGS
+          ================================================= */}
 
-          <section className="mx-auto mt-16 max-w-6xl sm:mt-20 lg:mt-24">
-            <div className="grid items-center gap-12 lg:grid-cols-[1.02fr_.98fr] lg:gap-16">
-              {/* =============================================
-                  IMAGES
-              ============================================= */}
+          {cards.map((card, index) => (
+            <div key={`${card.title}-${index}`}>
 
-              <GalleryPair
-                images={[
-                  gallery[0],
-                  gallery[1],
-                ]}
-                title="NCC Army Wing"
-                number="01"
+              {/* divider between cards */}
+
+              {index > 0 && (
+                <div
+                  aria-hidden="true"
+                  className="
+                    mx-auto
+                    mt-20
+                    flex
+                    max-w-6xl
+                    items-center
+                    gap-3
+                    sm:mt-24
+                  "
+                >
+                  <span className="h-px flex-1 bg-slate-200" />
+
+                  <span className="size-2 rotate-45 bg-gold" />
+
+                  <span className="h-px w-12 bg-slate-200" />
+                </div>
+              )}
+
+              <NccWing
+                card={card}
+                index={index}
               />
 
-              {/* =============================================
-                  CONTENT
-              ============================================= */}
-
-              <article>
-                <div className="grid size-13 place-items-center rounded-2xl bg-navy text-gold shadow-[0_12px_30px_-15px_rgba(16,42,67,.5)]">
-                  <Shield size={23} />
-                </div>
-
-                <p className="mt-6 text-[11px] font-bold uppercase tracking-[.2em] text-gold-dark">
-                  Army Wing
-                </p>
-
-                <h2 className="mt-3 font-serif text-3xl leading-tight text-navy sm:text-4xl">
-                  National Cadet Corps
-                  <span className="block">
-                    (Army Wing)
-                  </span>
-                </h2>
-
-                <div className="mt-5 h-[2px] w-10 bg-gold" />
-
-                <p className="mt-6 text-[15px] leading-8 text-slate-600 sm:text-base">
-                  {apiContent || "NCC facility both for boys and girls for junior Army Wing is provided in the school under the National Cadet Corps management. Students from class VI to X are eligible to join the same. The training and participation inculcate discipline, sportsmanship and leadership."}
-                </p>
-              </article>
             </div>
-
-            {/* ===============================================
-                ARMY ACTIVITIES
-            =============================================== */}
-
-            <div className="mt-14 grid gap-8 lg:grid-cols-[.34fr_.66fr] lg:gap-12">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[.2em] text-gold-dark">
-                  Activities
-                </p>
-
-                <h3 className="mt-3 font-serif text-2xl leading-tight text-navy sm:text-3xl">
-                  Some of the activities conducted by Paragon NCC team are:
-                </h3>
-              </div>
-
-              <div className="rounded-[24px] bg-white p-6 shadow-[0_20px_60px_-45px_rgba(16,42,67,.45)] sm:p-8">
-                <ActivityList activities={displayedArmyActivities} />
-              </div>
-            </div>
-          </section>
+          ))}
 
           {/* =================================================
-              SECTION DIVIDER
-          ===================================================== */}
+              EMPTY STATE
+          ================================================= */}
+
+          {page && cards.length === 0 && (
+            <div
+              className="
+                mx-auto
+                mt-14
+                max-w-4xl
+                rounded-[26px]
+                border
+                border-slate-200
+                bg-white
+                p-8
+                text-center
+                shadow-sm
+              "
+            >
+              <Shield
+                size={28}
+                className="mx-auto text-gold-dark"
+              />
+
+              <p className="mt-4 text-sm text-slate-500">
+                NCC content is currently unavailable.
+              </p>
+            </div>
+          )}
+
+          {/* =================================================
+              BACK
+          ================================================= */}
 
           <div
-            aria-hidden="true"
-            className="mx-auto my-20 flex max-w-6xl items-center gap-3 sm:my-24"
+            className="
+              mx-auto
+              mt-20
+              max-w-6xl
+              border-t
+              border-slate-200
+              pt-8
+            "
           >
-            <span className="h-px flex-1 bg-slate-200" />
-            <span className="size-2 rotate-45 bg-gold" />
-            <span className="h-px w-12 bg-slate-200" />
-          </div>
-
-          {/* =================================================
-              AIR WING
-          ===================================================== */}
-
-          <section className="mx-auto max-w-6xl">
-            <div className="grid items-center gap-12 lg:grid-cols-[.98fr_1.02fr] lg:gap-16">
-              {/* =============================================
-                  CONTENT
-              ============================================= */}
-
-              <article className="order-2 lg:order-1">
-                <div className="grid size-13 place-items-center rounded-2xl bg-cream text-gold-dark">
-                  <Plane size={23} />
-                </div>
-
-                <p className="mt-6 text-[11px] font-bold uppercase tracking-[.2em] text-gold-dark">
-                  Air Wing
-                </p>
-
-                <h2 className="mt-3 font-serif text-3xl leading-tight text-navy sm:text-4xl">
-                  National Cadet Corps
-                  <span className="block">
-                    (Air Wing)
-                  </span>
-                </h2>
-
-                <div className="mt-5 h-[2px] w-10 bg-gold" />
-
-                <p className="mt-6 text-[15px] leading-8 text-slate-600 sm:text-base">
-                  The school proudly offers NCC Air Wing facilities for both
-                  boys and girls under the management of the National Cadet
-                  Corps. Students from classes VIII and IX are eligible to join
-                  this prestigious wing. Participation in the NCC Air Wing
-                  instills vital qualities such as discipline, teamwork,
-                  leadership, and patriotism, providing a foundation for
-                  personal and social growth.
-                </p>
-              </article>
-
-              {/* =============================================
-                  IMAGES
-              ============================================= */}
-
-              <div className="order-1 lg:order-2">
-                <GalleryPair
-                  images={[
-                      gallery[2],
-                    gallery[3],
-                  ]}
-                  title="NCC Air Wing"
-                  number="02"
-                  reverse
-                />
-              </div>
-            </div>
-
-            {/* ===============================================
-                AIR WING ACTIVITIES
-            =============================================== */}
-
-            <div className="mt-14 grid gap-8 lg:grid-cols-[.34fr_.66fr] lg:gap-12">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[.2em] text-gold-dark">
-                  Activities
-                </p>
-
-                <h3 className="mt-3 font-serif text-2xl leading-tight text-navy sm:text-3xl">
-                  Activities Conducted by the Paragon NCC Air Wing Team:
-                </h3>
-              </div>
-
-              <div>
-                <div className="rounded-[24px] bg-white p-6 shadow-[0_20px_60px_-45px_rgba(16,42,67,.45)] sm:p-8">
-                  <ActivityList activities={displayedAirActivities} />
-                </div>
-
-                {/* VIDEO TEXT - ORIGINAL CONTENT KEPT */}
-
-                <p className="mt-7 text-[15px] font-semibold leading-7 text-navy sm:text-base">
-                  Watch the thrilling moments of cadets soaring the skies here:{" "}
-                  <span className="text-blue-600 underline">
-                    Click to Watch
-                  </span>
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* =================================================
-              BACK TO HOME
-          ===================================================== */}
-
-          <div className="mx-auto mt-20 max-w-6xl border-t border-slate-200 pt-8">
             <Link
               to="/school"
               className="
@@ -554,6 +968,7 @@ export function NccPage() {
               Back to home
             </Link>
           </div>
+
         </div>
       </section>
     </main>

@@ -7,7 +7,7 @@ import {
   Home,
   Info,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { KidsFooter } from "../components/KidsFooter";
 import { KidsMagicCursor } from "../components/KidsMagicCursor";
 import { kidsApi } from "../api/kidsApi";
@@ -77,6 +77,7 @@ export function KidsLayout() {
   const [open, setOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [desktopAboutOpen, setDesktopAboutOpen] = useState(false);
+  const desktopAboutRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
 
@@ -100,6 +101,24 @@ export function KidsLayout() {
       document.activeElement.blur();
     }
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!desktopAboutOpen) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !desktopAboutRef.current?.contains(event.target)
+      ) {
+        setDesktopAboutOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    return () =>
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+  }, [desktopAboutOpen]);
+
   const preventHeaderDrag = (event: React.MouseEvent<HTMLElement>) => {
     if (event.button === 0 && event.target instanceof Element && event.target.closest("a, button")) {
       event.preventDefault();
@@ -274,7 +293,7 @@ export function KidsLayout() {
 
       {/* mobile short text */}
       <span className="whitespace-nowrap sm:hidden">
-        School
+        Paragon School
       </span>
 
       <ArrowUpRight
@@ -437,7 +456,10 @@ export function KidsLayout() {
 
               {/* ABOUT DROPDOWN */}
 
-              <div className="relative flex h-full items-center">
+              <div
+                ref={desktopAboutRef}
+                className="relative flex h-full items-center"
+              >
 
                 <NavLink
                   to="/kids/about"

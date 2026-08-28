@@ -44,7 +44,18 @@ function mediaUrl(image?: string | null, imageUrl?: string | null) {
 }
 
 function plainText(html?: string | null) {
-  return html?.replace(/<[^>]*>/g, "").trim() || "";
+  return (
+    html
+      ?.replace(/&(?:nbsp|#160|#x0*a0);/gi, " ")
+      .replace(/\u00a0/g, " ")
+      .replace(/<br\s*\/?\s*>/gi, "\n")
+      .replace(/<\/p>/gi, "\n\n")
+      .replace(/<[^>]*>/g, "")
+      .replace(/[^\S\r\n]+/g, " ")
+      .replace(/ *\r?\n */g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim() || ""
+  );
 }
 const germanGallery = [
   {
@@ -103,6 +114,8 @@ export function GermanLanguagePage() {
           PAGE BANNER
       ===================================================== */}
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={banner?.title || page?.title || "German Language Teaching"}
         description={plainText(banner?.description) || "Opening young minds to language, culture and global opportunities."}
       />
@@ -241,7 +254,7 @@ export function GermanLanguagePage() {
               ================================================= */}
               <div className="mt-7 space-y-6 text-[15px] leading-8 text-slate-600 sm:text-base">
                 {contentText ? (
-                  <p>{contentText}</p>
+                  <p className="whitespace-pre-line">{contentText}</p>
                 ) : (
                   <>
                 <p>

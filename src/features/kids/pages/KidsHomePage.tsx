@@ -32,9 +32,16 @@ type ParentSlide = {
   name?: string;
 };
 
+type WelcomeCard = {
+  number: string;
+  title: string;
+  accent_color: string;
+};
+
 type HomeSettings = {
   slides?: KidsHomeSlide[] | ParentSlide[];
   items?: Array<{ text?: string }>;
+  cards?: WelcomeCard[];
 };
 
 type HomeSection = {
@@ -221,6 +228,11 @@ export function KidsHomePage() {
   const heroSettings = heroSection?.settings && !Array.isArray(heroSection.settings) ? heroSection.settings : undefined;
   const parentsSettings = parentsSection?.settings && !Array.isArray(parentsSection.settings) ? parentsSection.settings : undefined;
   const aboutSettings = aboutSection?.settings && !Array.isArray(aboutSection.settings) ? aboutSection.settings : undefined;
+  const welcomeSettings =
+    welcomeSection?.settings && !Array.isArray(welcomeSection.settings)
+      ? welcomeSection.settings
+      : undefined;
+  const welcomeCards = welcomeSettings?.cards || [];
   const apiHeroSlides = (heroSettings?.slides || []) as KidsHomeSlide[];
   const displayedSlides = apiHeroSlides.length
     ? apiHeroSlides.map((slide, index) => {
@@ -401,7 +413,7 @@ export function KidsHomePage() {
                   </Link>
 
                   <Link
-                    to="/kids/about/infrastructure"
+                    to="/kids/activities"
                     className="
                       rounded-full
                       border-2 border-[#32305f]/15
@@ -1005,161 +1017,70 @@ export function KidsHomePage() {
 
             {/* FEATURES */}
             <div className="relative mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {/* 01 */}
-              <div
-                className={`group relative overflow-hidden rounded-[28px] border border-[#f39b24]/15 bg-white p-7 shadow-[0_18px_50px_-30px_rgba(50,48,95,.25)] transition-all duration-1000 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-2 ${
-                  welcomeVisible
-                    ? "translate-x-0 translate-y-0 rotate-0 scale-100 opacity-100"
-                    : "-translate-x-16 -rotate-3 scale-[.88] opacity-0"
-                }`}
-                style={{ transitionDelay: "450ms" }}
-              >
-                <span className="absolute -right-10 -top-10 size-28 rounded-full bg-[#f39b24]/10" />
+              {welcomeCards.map((card, index) => {
+                const entranceClasses = [
+                  "-translate-x-16 -rotate-3",
+                  "translate-y-16 rotate-2",
+                  "translate-x-16 rotate-3",
+                  "-translate-x-16 rotate-2",
+                  "translate-y-16 -rotate-2",
+                  "translate-x-16 -rotate-3",
+                ];
+                const accent = card.accent_color || "#f39b24";
 
-                <div className="relative">
-                  <span className="grid size-12 place-items-center rounded-2xl bg-[#fff1d7] text-xl font-black text-[#f39b24] transition duration-500 group-hover:rotate-6">
-                    01
-                  </span>
+                return (
+                  <div
+                    key={card.number + "-" + card.title}
+                    className={[
+                      "group relative overflow-hidden rounded-[28px] border bg-white p-7 shadow-[0_18px_50px_-30px_rgba(50,48,95,.25)] transition-all duration-1000 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-2",
+                      welcomeVisible
+                        ? "translate-x-0 translate-y-0 rotate-0 scale-100 opacity-100"
+                        : entranceClasses[index % entranceClasses.length] +
+                          " scale-[.88] opacity-0",
+                    ].join(" ")}
+                    style={{
+                      borderColor:
+                        "color-mix(in srgb, " + accent + " 15%, transparent)",
+                      transitionDelay: 450 + index * 100 + "ms",
+                    }}
+                  >
+                    <span
+                      className="absolute -right-10 -top-10 size-28 rounded-full"
+                      style={{
+                        backgroundColor:
+                          "color-mix(in srgb, " + accent + " 10%, transparent)",
+                      }}
+                    />
 
-                  <h4 className="mt-7 text-xl font-black leading-7 text-[#32305f]">
-                    Always do
-                    <br />
-                    new things
-                  </h4>
+                    <div className="relative">
+                      <span
+                        className={[
+                          "grid size-12 place-items-center rounded-2xl text-xl font-black transition duration-500",
+                          index % 2 === 0
+                            ? "group-hover:rotate-6"
+                            : "group-hover:-rotate-6",
+                        ].join(" ")}
+                        style={{
+                          backgroundColor:
+                            "color-mix(in srgb, " + accent + " 13%, white)",
+                          color: accent,
+                        }}
+                      >
+                        {card.number}
+                      </span>
 
-                  <div className="mt-6 h-1 w-10 rounded-full bg-[#f39b24]" />
-                </div>
-              </div>
+                      <h4 className="mt-7 text-xl font-black leading-7 text-[#32305f]">
+                        {card.title}
+                      </h4>
 
-              {/* 02 */}
-              <div
-                className={`group relative overflow-hidden rounded-[28px] border border-[#20a98b]/15 bg-white p-7 shadow-[0_18px_50px_-30px_rgba(50,48,95,.25)] transition-all duration-1000 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-2 ${
-                  welcomeVisible
-                    ? "translate-x-0 translate-y-0 rotate-0 scale-100 opacity-100"
-                    : "translate-y-16 rotate-2 scale-[.88] opacity-0"
-                }`}
-                style={{ transitionDelay: "550ms" }}
-              >
-                <span className="absolute -right-10 -top-10 size-28 rounded-full bg-[#20a98b]/10" />
-
-                <div className="relative">
-                  <span className="grid size-12 place-items-center rounded-2xl bg-[#e2f7f2] text-xl font-black text-[#20a98b] transition duration-500 group-hover:-rotate-6">
-                    02
-                  </span>
-
-                  <h4 className="mt-7 text-xl font-black leading-7 text-[#32305f]">
-                    Hygienic
-                    <br />
-                    environment
-                  </h4>
-
-                  <div className="mt-6 h-1 w-10 rounded-full bg-[#20a98b]" />
-                </div>
-              </div>
-
-              {/* 03 */}
-              <div
-                className={`group relative overflow-hidden rounded-[28px] border border-[#25a9e0]/15 bg-white p-7 shadow-[0_18px_50px_-30px_rgba(50,48,95,.25)] transition-all duration-1000 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-2 ${
-                  welcomeVisible
-                    ? "translate-x-0 translate-y-0 rotate-0 scale-100 opacity-100"
-                    : "translate-x-16 rotate-3 scale-[.88] opacity-0"
-                }`}
-                style={{ transitionDelay: "650ms" }}
-              >
-                <span className="absolute -right-10 -top-10 size-28 rounded-full bg-[#25a9e0]/10" />
-
-                <div className="relative">
-                  <span className="grid size-12 place-items-center rounded-2xl bg-[#e4f5fc] text-xl font-black text-[#25a9e0] transition duration-500 group-hover:rotate-6">
-                    03
-                  </span>
-
-                  <h4 className="mt-7 text-xl font-black leading-7 text-[#32305f]">
-                    The teachers
-                    <br />
-                    really care
-                  </h4>
-
-                  <div className="mt-6 h-1 w-10 rounded-full bg-[#25a9e0]" />
-                </div>
-              </div>
-
-              {/* 04 */}
-              <div
-                className={`group relative overflow-hidden rounded-[28px] border border-[#e83d80]/15 bg-white p-7 shadow-[0_18px_50px_-30px_rgba(50,48,95,.25)] transition-all duration-1000 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-2 ${
-                  welcomeVisible
-                    ? "translate-x-0 translate-y-0 rotate-0 scale-100 opacity-100"
-                    : "-translate-x-16 rotate-2 scale-[.88] opacity-0"
-                }`}
-                style={{ transitionDelay: "750ms" }}
-              >
-                <span className="absolute -right-10 -top-10 size-28 rounded-full bg-[#e83d80]/10" />
-
-                <div className="relative">
-                  <span className="grid size-12 place-items-center rounded-2xl bg-[#fde7f0] text-xl font-black text-[#e83d80] transition duration-500 group-hover:-rotate-6">
-                    04
-                  </span>
-
-                  <h4 className="mt-7 text-xl font-black leading-7 text-[#32305f]">
-                    Child
-                    <br />
-                    safety
-                  </h4>
-
-                  <div className="mt-6 h-1 w-10 rounded-full bg-[#e83d80]" />
-                </div>
-              </div>
-
-              {/* 05 */}
-              <div
-                className={`group relative overflow-hidden rounded-[28px] border border-[#e8c800]/20 bg-white p-7 shadow-[0_18px_50px_-30px_rgba(50,48,95,.25)] transition-all duration-1000 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-2 ${
-                  welcomeVisible
-                    ? "translate-x-0 translate-y-0 rotate-0 scale-100 opacity-100"
-                    : "translate-y-16 -rotate-2 scale-[.88] opacity-0"
-                }`}
-                style={{ transitionDelay: "850ms" }}
-              >
-                <span className="absolute -right-10 -top-10 size-28 rounded-full bg-[#f6d600]/10" />
-
-                <div className="relative">
-                  <span className="grid size-12 place-items-center rounded-2xl bg-[#fff8d1] text-xl font-black text-[#d7b600] transition duration-500 group-hover:rotate-6">
-                    05
-                  </span>
-
-                  <h4 className="mt-7 text-xl font-black leading-7 text-[#32305f]">
-                    Technology and
-                    <br />
-                    hands on experiment
-                  </h4>
-
-                  <div className="mt-6 h-1 w-10 rounded-full bg-[#f0cf00]" />
-                </div>
-              </div>
-
-              {/* 06 */}
-              <div
-                className={`group relative overflow-hidden rounded-[28px] border border-[#f04f5f]/15 bg-white p-7 shadow-[0_18px_50px_-30px_rgba(50,48,95,.25)] transition-all duration-1000 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-2 ${
-                  welcomeVisible
-                    ? "translate-x-0 translate-y-0 rotate-0 scale-100 opacity-100"
-                    : "translate-x-16 -rotate-3 scale-[.88] opacity-0"
-                }`}
-                style={{ transitionDelay: "950ms" }}
-              >
-                <span className="absolute -right-10 -top-10 size-28 rounded-full bg-[#f04f5f]/10" />
-
-                <div className="relative">
-                  <span className="grid size-12 place-items-center rounded-2xl bg-[#ffe8eb] text-xl font-black text-[#f04f5f] transition duration-500 group-hover:-rotate-6">
-                    06
-                  </span>
-
-                  <h4 className="mt-7 text-xl font-black leading-7 text-[#32305f]">
-                    Raising up kids to be capable
-                    <br />
-                    and successful citizens
-                  </h4>
-
-                  <div className="mt-6 h-1 w-10 rounded-full bg-[#f04f5f]" />
-                </div>
-              </div>
+                      <div
+                        className="mt-6 h-1 w-10 rounded-full"
+                        style={{ backgroundColor: accent }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

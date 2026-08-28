@@ -1,4 +1,4 @@
-﻿import {
+import {
   Dumbbell,
   Palette,
   UsersRound,
@@ -56,6 +56,8 @@ type ClubActivitiesSection = {
   type: string;
   title?: string;
   description?: string | null;
+  image?: string | null;
+  image_url?: string | null;
   is_active: boolean;
   settings?: ClubActivitiesSettings | [];
 };
@@ -286,6 +288,8 @@ export function ClubActivitiesPage() {
   return (
     <>
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title="Clubs Activity"
         description="Activity Club Â· Sports Club"
       />

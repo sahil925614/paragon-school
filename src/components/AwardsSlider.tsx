@@ -727,7 +727,7 @@ export function AwardsSlider({
                       sm:px-3
                     "
                 >
-                  <p
+                  {/* <p
                     className="
                         text-[10px]
                         font-bold
@@ -737,7 +737,7 @@ export function AwardsSlider({
                       "
                   >
                     {award.category}
-                  </p>
+                  </p> */}
 
                   <h3
                     className="

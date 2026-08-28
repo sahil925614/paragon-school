@@ -1,4 +1,4 @@
-﻿import {
+import {
   Building2,
   ExternalLink,
   FileCheck2,
@@ -74,6 +74,8 @@ type DisclosureApiSection = {
   type: string;
   title?: string;
   description?: string | null;
+  image?: string | null;
+  image_url?: string | null;
   is_active: boolean;
   settings?: DisclosureSettings | [];
 };
@@ -439,6 +441,8 @@ export function MandatoryDisclosurePage() {
   return (
     <>
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={banner?.title || disclosurePage?.title || "Mandatory Disclosure Information"}
         description={plainText(banner?.description) || "Access the school's required public disclosure information."}
       />

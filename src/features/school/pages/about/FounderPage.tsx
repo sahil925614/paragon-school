@@ -91,6 +91,8 @@ export function FounderPage() {
 
   return (
     <AboutDetailPage
+      bannerImage={banner?.image}
+      bannerImageUrl={banner?.image_url}
       title={founder?.title || banner?.title || page?.title || "Founder"}
       description={
         plainText(banner?.description) ||

@@ -91,6 +91,8 @@ export function PresidentsDeskPage() {
 
   return (
     <AboutDetailPage
+      bannerImage={banner?.image}
+      bannerImageUrl={banner?.image_url}
       title={president?.title || banner?.title || page?.title || "President's Desk"}
       description={
         plainText(banner?.description) ||

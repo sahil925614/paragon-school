@@ -78,16 +78,15 @@ export function MissionVisionPage() {
 
   return (
     <AboutDetailPage
+      bannerImage={banner?.image}
+      bannerImageUrl={banner?.image_url}
       title={mission?.title || banner?.title || page?.title || "Mission and Vision"}
       description={
         plainText(banner?.description) ||
         "The purpose and principles that guide education at Paragon."
       }
       eyebrow={mission?.name || "Our direction"}
-      introduction={
-        plainText(banner?.description) ||
-        "To nurture thoughtful, capable and compassionate young people."
-      }
+      introduction="Shaping confident learners who think with clarity, act with integrity and contribute with compassion."
       paragraphs={paragraphs.length ? paragraphs : fallbackParagraphs}
       image={
         mediaUrl(mission?.image, mission?.image_url) ||

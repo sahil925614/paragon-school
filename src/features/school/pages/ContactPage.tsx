@@ -38,6 +38,8 @@ type ContactSection = {
   type: string;
   title: string;
   description?: string | null;
+  image?: string | null;
+  image_url?: string | null;
   is_active: boolean;
   settings?: ContactSettings | [];
 };
@@ -139,6 +141,8 @@ export function ContactPage() {
   return (
     <>
       <PageBanner
+        image={banner?.image}
+        imageUrl={banner?.image_url}
         title={banner?.title || "Contact Us"}
         description={plainText(banner?.description) || "Connect with the Paragon School team."}
       />

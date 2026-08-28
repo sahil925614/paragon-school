@@ -1,53 +1,147 @@
-import {
-  ArrowLeft,
-  MapPin,
-  Plane,
-} from "lucide-react";
+import { ArrowLeft, MapPin, Plane } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+
 import { PageBanner } from "../../../../components/PageBanner";
 import { schoolApi } from "../../api/schoolApi";
 import { applyPageSeo, type PageSeo } from "../../utils/pageSeo";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
+type ActivityCardImage = {
+  image?: string | null;
+  image_url?: string | null;
+};
+
 type ActivityCard = {
-  title?: string;
-  description?: string;
-  image?: string;
-  image_url?: string;
+  title?: string | null;
+  description?: string | null;
+  images?: ActivityCardImage[] | null;
+};
+
+type ActivityCardsSettings = {
+  cards?: ActivityCard[] | null;
 };
 
 type ExcursionSection = {
+  id?: number;
   type: string;
-  title: string;
+  name?: string;
+  title?: string | null;
   description?: string | null;
+  button_text?: string | null;
+  button_url?: string | null;
+  image?: string | null;
+  image_url?: string | null;
+  settings?: ActivityCardsSettings | [];
+  sort_order?: number;
   is_active: boolean;
-  settings?: { cards?: ActivityCard[] } | [];
 };
 
 type ExcursionPageData = {
+  id?: number;
+  site_id?: number;
   title: string;
   slug: string;
+  template?: string;
+  is_home?: boolean;
   seo?: PageSeo;
   sections: ExcursionSection[];
 };
 
-const storageBaseUrl = "https://lightskyblue-eland-620788.hostingersite.com/storage/";
-
-function mediaUrl(image?: string, imageUrl?: string) {
-  if (image) return `${storageBaseUrl}${image.replace(/^\/+/, "")}`;
-  if (imageUrl && !imageUrl.includes("localhost")) return imageUrl;
-  return undefined;
-}
-
-function plainText(html?: string | null) {
-  return html?.replace(/<[^>]*>/g, "").trim() || "";
-}
 type TripSection = {
   title: string;
   image: string;
   paragraphs: string[];
 };
+
+/* =========================================================
+   STORAGE
+========================================================= */
+
+const storageBaseUrl =
+  "https://lightskyblue-eland-620788.hostingersite.com/storage/";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function mediaUrl(
+  image?: string | null,
+  imageUrl?: string | null
+): string | undefined {
+  /*
+   * Prefer image_url when API already gives us a complete
+   * production URL.
+   */
+  if (
+    imageUrl &&
+    !imageUrl.includes("localhost") &&
+    /^https?:\/\//i.test(imageUrl)
+  ) {
+    return imageUrl;
+  }
+
+  /*
+   * Otherwise build URL from the stored relative path.
+   */
+  if (image) {
+    if (/^https?:\/\//i.test(image)) {
+      return image;
+    }
+
+    return `${storageBaseUrl}${image.replace(/^\/+/, "")}`;
+  }
+
+  /*
+   * Allow non-local image_url values even if they are relative.
+   */
+  if (imageUrl && !imageUrl.includes("localhost")) {
+    return imageUrl;
+  }
+
+  return undefined;
+}
+
+function plainText(html?: string | null): string {
+  if (!html) return "";
+
+  return html
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/p>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractParagraphs(html?: string | null): string[] {
+  if (!html) return [];
+
+  const matches = [...html.matchAll(/<p[^>]*>(.*?)<\/p>/gis)];
+
+  if (!matches.length) {
+    const text = plainText(html);
+
+    return text ? [text] : [];
+  }
+
+  return matches
+    .map((match) => plainText(match[1]))
+    .filter((paragraph): paragraph is string => Boolean(paragraph));
+}
+
+/* =========================================================
+   FALLBACK CONTENT
+
+   Used only if API cards/images are unavailable.
+========================================================= */
 
 const tripSections: TripSection[] = [
   {
@@ -58,6 +152,7 @@ const tripSections: TripSection[] = [
       "The students went to three cities New York, Washington DC and Orlando, where they visited the Times Square, Madame Tussauds Museum, Statue of Liberty, Empire State Building, World Bank, Universal Studios, The White House, Smithsonian Museum to name a few. They also visited Kennedy Space Center where they spent the entire day and experienced shuttle launch through virtual simulation and Lunch with Astronaut. The NASA bus tour also took the students to the places where spaceships are assembled and launched from.",
     ],
   },
+
   {
     title: "Visit To Chandigarh Museum",
     image: "/images/13.webp",
@@ -65,6 +160,7 @@ const tripSections: TripSection[] = [
       "The student of Heritage Club spent their day exploring art and its surrounding art and archaeology themed attractions at the Fine Arts College Sector-10. They were thrilled and excited to learn about their rich heritage and culture depicted in the form of textiles, paintings, artifacts and much more.",
     ],
   },
+
   {
     title: "Visit To Sangol Museum",
     image: "/images/14.webp",
@@ -73,6 +169,7 @@ const tripSections: TripSection[] = [
       "The existing building of the Museum was inaugurated as a subordinate unit of the Department of Cultural Affairs, Archaeology and Museums of the Punjab Government. The visit to the museum was thrilling as well as an enriching experience for the students. Students got to know deeply and see the vast storehouse of our country’s ancient glory. This visit to the Sanghol Museum was meant to be an interesting and educative experience for the students.",
     ],
   },
+
   {
     title: "Visit To Chapparchiri",
     image: "/images/15.webp",
@@ -81,6 +178,7 @@ const tripSections: TripSection[] = [
       "Students had a great experience visiting and getting to know interesting facts about baba Banda Singh Bahadur war memorial. We plan to make studies as interesting as possible for students by planning such trips that are interesting and educate students about different things.",
     ],
   },
+
   {
     title: "Visit To Educational Trip Kurukshetra",
     image: "/images/16.webp",
@@ -91,60 +189,152 @@ const tripSections: TripSection[] = [
   },
 ];
 
+/* =========================================================
+   PAGE
+========================================================= */
+
 export function ExcursionPage() {
+  /* =======================================================
+     API
+  ======================================================= */
+
   const { data: page } = useQuery({
     queryKey: ["school-page", "excursion"],
+
     queryFn: async () => {
-      const response = await schoolApi.get<{ data: ExcursionPageData }>(
-        "pages/excursion",
-      );
+      const response = await schoolApi.get<{
+        data: ExcursionPageData;
+      }>("pages/excursion");
+
       return response.data.data;
     },
   });
+
+  /* =======================================================
+     SECTIONS
+  ======================================================= */
+
   const banner = page?.sections.find(
-    (section) => section.type === "home_banner" && section.is_active,
+    (section) =>
+      section.type === "home_banner" &&
+      section.is_active
   );
+
   const content = page?.sections.find(
-    (section) => section.type === "activity_cards_content" && section.is_active,
+    (section) =>
+      section.type === "activity_cards_content" &&
+      section.is_active
   );
-  const cards =
-    content?.settings && !Array.isArray(content.settings)
+
+  /* =======================================================
+     CARDS
+  ======================================================= */
+
+  const cards: ActivityCard[] =
+    content?.settings &&
+    !Array.isArray(content.settings)
       ? content.settings.cards ?? []
       : [];
+
+  /* =======================================================
+     API TRIPS
+
+     API structure:
+     card.images[0].image
+     card.images[0].image_url
+  ======================================================= */
+
   const apiTrips: TripSection[] = cards
-    .map((card, index) => ({
-      title: card.title || `Excursion ${index + 1}`,
-      image: mediaUrl(card.image, card.image_url) || "",
-      paragraphs: [plainText(card.description)].filter(Boolean),
-    }))
-    .filter((trip) => Boolean(trip.image));
-  const displayedTrips = apiTrips.length ? apiTrips : tripSections;
-  const introText = plainText(content?.description);
+    .map((card, index): TripSection | null => {
+      const firstImage = card.images?.[0];
+
+      const resolvedImage = mediaUrl(
+        firstImage?.image,
+        firstImage?.image_url
+      );
+
+      /*
+       * If this particular card has no valid image,
+       * don't create an invalid trip.
+       */
+      if (!resolvedImage) {
+        return null;
+      }
+
+      return {
+        title:
+          card.title?.trim() ||
+          `Excursion ${index + 1}`,
+
+        image: resolvedImage,
+
+        paragraphs: extractParagraphs(
+          card.description
+        ),
+      };
+    })
+    .filter(
+      (trip): trip is TripSection =>
+        trip !== null
+    );
+
+  /* =======================================================
+     FALLBACK
+  ======================================================= */
+
+  const displayedTrips =
+    apiTrips.length > 0
+      ? apiTrips
+      : tripSections;
+
+  /* =======================================================
+     PAGE CONTENT
+  ======================================================= */
+
+  const introText =
+    plainText(content?.description);
+
   const description =
     plainText(banner?.description) ||
     "The school organizes trips and tours for the students in the nearby areas of Chandigarh and sometimes within the city itself.";
+
+  /* =======================================================
+     SEO
+  ======================================================= */
 
   useEffect(() => {
     applyPageSeo(page?.seo);
   }, [page]);
 
+  /* =======================================================
+     RENDER
+  ======================================================= */
+
   return (
     <main className="overflow-hidden bg-[#fcfbf8]">
-      {/* =====================================================
+
+      {/* ===================================================
           PAGE BANNER
-      ===================================================== */}
+      =================================================== */}
 
       <PageBanner
-        title={banner?.title || page?.title || "Excursion"}
+        image={banner?.image}
+        imageUrl={banner?.image_url}
+        title={
+          banner?.title ||
+          page?.title ||
+          "Excursion"
+        }
         description={description}
       />
 
-      {/* =====================================================
+      {/* ===================================================
           PAGE CONTENT
-      ===================================================== */}
+      =================================================== */}
 
       <section className="relative py-16 sm:py-20 lg:py-24">
-        {/* BACKGROUND CIRCLE - LEFT */}
+
+        {/* BACKGROUND DECORATION */}
 
         <div
           aria-hidden="true"
@@ -160,8 +350,6 @@ export function ExcursionPage() {
           "
         />
 
-        {/* BACKGROUND CIRCLE - RIGHT */}
-
         <div
           aria-hidden="true"
           className="
@@ -176,8 +364,6 @@ export function ExcursionPage() {
           "
         />
 
-        {/* SECOND NAVY CIRCLE */}
-
         <div
           aria-hidden="true"
           className="
@@ -190,8 +376,6 @@ export function ExcursionPage() {
             bg-navy/[.018]
           "
         />
-
-        {/* SECOND GOLD CIRCLE */}
 
         <div
           aria-hidden="true"
@@ -208,17 +392,21 @@ export function ExcursionPage() {
         />
 
         <div className="container relative">
+
           {/* =================================================
               INTRODUCTION
           ================================================= */}
 
           <section className="mx-auto max-w-5xl text-center">
+
             <p className="text-[11px] font-bold uppercase tracking-[.22em] text-gold-dark">
               Excursion
             </p>
 
             <h2 className="mt-4 font-serif text-3xl leading-tight text-navy sm:text-4xl lg:text-5xl">
-              {content?.title || page?.title || "Trips and Tours"}
+              {content?.title ||
+                page?.title ||
+                "Trips and Tours"}
             </h2>
 
             <div
@@ -226,13 +414,17 @@ export function ExcursionPage() {
               aria-hidden="true"
             >
               <span className="h-[2px] w-10 bg-gold" />
+
               <span className="size-1.5 rotate-45 bg-gold" />
+
               <span className="h-[2px] w-10 bg-gold" />
             </div>
 
             <p className="mx-auto mt-7 max-w-4xl text-[15px] leading-8 text-slate-600 sm:text-base">
-              {introText || "The school organizes trips and tours for students in nearby areas and beyond, fostering responsibility, confidence, reliability and practical learning through visits to institutions, museums, scientific centres and international destinations."}
+              {introText ||
+                "The school organizes trips and tours for students in nearby areas and beyond, fostering responsibility, confidence, reliability and practical learning through visits to institutions, museums, scientific centres and international destinations."}
             </p>
+
           </section>
 
           {/* =================================================
@@ -240,230 +432,273 @@ export function ExcursionPage() {
           ================================================= */}
 
           <div className="mx-auto mt-16 max-w-6xl sm:mt-20 lg:mt-24">
-            {displayedTrips.map((trip, index) => {
-              const imageLeft = index % 2 === 0;
 
-              return (
-                <section
-                  key={trip.title}
-                  className={`
-                    relative
-                    grid
-                    items-center
-                    gap-10
-                    py-12
-                    first:pt-0
-                    last:pb-0
-                    sm:py-16
-                    lg:grid-cols-2
-                    lg:gap-16
-                    lg:py-20
-                  `}
-                >
-                  {/* ===========================================
-                      IMAGE
-                  =========================================== */}
+            {displayedTrips.map(
+              (trip, index) => {
 
-                  <div
-                    className={
-                      imageLeft
-                        ? "lg:order-1"
-                        : "lg:order-2"
-                    }
+                const imageLeft =
+                  index % 2 === 0;
+
+                return (
+                  <section
+                    key={`${trip.title}-${index}`}
+                    className="
+                      relative
+                      grid
+                      items-center
+                      gap-10
+                      py-12
+                      first:pt-0
+                      last:pb-0
+                      sm:py-16
+                      lg:grid-cols-2
+                      lg:gap-16
+                      lg:py-20
+                    "
                   >
-                    <figure className="group relative">
-                      {/* BACKGROUND BLOCK */}
 
-                      <div
-                        aria-hidden="true"
-                        className={`
-                          absolute
-                          bottom-[-18px]
-                          h-[72%]
-                          w-[72%]
-                          rounded-[28px]
+                    {/* =========================================
+                        IMAGE
+                    ========================================= */}
 
-                          ${
-                            imageLeft
-                              ? "-left-[18px] bg-navy"
-                              : "-right-[18px] bg-gold/20"
-                          }
-                        `}
-                      />
+                    <div
+                      className={
+                        imageLeft
+                          ? "lg:order-1"
+                          : "lg:order-2"
+                      }
+                    >
 
-                      {/* DECORATIVE RING */}
+                      <figure className="group relative">
 
-                      <div
-                        aria-hidden="true"
-                        className={`
-                          absolute
-                          -top-5
-                          size-28
-                          rounded-full
-                          border-[16px]
+                        {/* BACKGROUND BLOCK */}
 
-                          ${
-                            imageLeft
-                              ? "-right-5 border-gold/20"
-                              : "-left-5 border-navy/[.07]"
-                          }
-                        `}
-                      />
+                        <div
+                          aria-hidden="true"
+                          className={`
+                            absolute
+                            bottom-[-18px]
+                            h-[72%]
+                            w-[72%]
+                            rounded-[28px]
 
-                      {/* IMAGE FRAME */}
+                            ${
+                              imageLeft
+                                ? "-left-[18px] bg-navy"
+                                : "-right-[18px] bg-gold/20"
+                            }
+                          `}
+                        />
 
-                      <div
-                        className="
-                          relative
-                          overflow-hidden
-                          rounded-[28px]
-                          bg-white
-                          p-2
-                          shadow-[0_25px_65px_-35px_rgba(16,42,67,.5)]
-                        "
-                      >
+                        {/* DECORATIVE RING */}
+
+                        <div
+                          aria-hidden="true"
+                          className={`
+                            absolute
+                            -top-5
+                            size-28
+                            rounded-full
+                            border-[16px]
+
+                            ${
+                              imageLeft
+                                ? "-right-5 border-gold/20"
+                                : "-left-5 border-navy/[.07]"
+                            }
+                          `}
+                        />
+
+                        {/* IMAGE FRAME */}
+
                         <div
                           className="
                             relative
                             overflow-hidden
-                            rounded-[22px]
-                            bg-[#f3f1eb]
+                            rounded-[28px]
+                            bg-white
+                            p-2
+                            shadow-[0_25px_65px_-35px_rgba(16,42,67,.5)]
                           "
                         >
-                          <img
-                            src={trip.image}
-                            alt={trip.title}
-                            className="
-                              aspect-[4/3]
-                              size-full
-                              object-cover
-                              transition
-                              duration-700
-                              ease-out
-                              group-hover:scale-[1.025]
-                            "
-                            loading={index < 2 ? "eager" : "lazy"}
-                          />
 
                           <div
-                            aria-hidden="true"
                             className="
-                              pointer-events-none
-                              absolute
-                              inset-x-0
-                              bottom-0
-                              h-20
-                              bg-gradient-to-t
-                              from-navy/15
-                              to-transparent
+                              relative
+                              flex
+                              aspect-[4/3]
+                              items-center
+                              justify-center
+                              overflow-hidden
+                              rounded-[22px]
+                              bg-[#f3f1eb]
                             "
-                          />
+                          >
+
+                            <img
+                              src={trip.image}
+                              alt={trip.title}
+                              className="
+                                h-full
+                                w-full
+                                object-contain
+                                transition
+                                duration-700
+                                ease-out
+                                group-hover:scale-[1.015]
+                              "
+                              loading={
+                                index < 2
+                                  ? "eager"
+                                  : "lazy"
+                              }
+                            />
+
+                            <div
+                              aria-hidden="true"
+                              className="
+                                pointer-events-none
+                                absolute
+                                inset-x-0
+                                bottom-0
+                                h-16
+                                bg-gradient-to-t
+                                from-navy/10
+                                to-transparent
+                              "
+                            />
+
+                          </div>
+
                         </div>
-                      </div>
 
-                      {/* TRIP NUMBER */}
+                        {/* TRIP NUMBER */}
 
-                      <span
+                        <span
+                          className={`
+                            absolute
+                            -bottom-4
+                            grid
+                            size-12
+                            place-items-center
+                            rounded-xl
+                            text-xs
+                            font-bold
+                            shadow-lg
+
+                            ${
+                              imageLeft
+                                ? "right-7 bg-gold text-white"
+                                : "left-7 bg-navy text-gold"
+                            }
+                          `}
+                        >
+                          {String(index + 1).padStart(
+                            2,
+                            "0"
+                          )}
+                        </span>
+
+                      </figure>
+
+                    </div>
+
+                    {/* =========================================
+                        CONTENT
+                    ========================================= */}
+
+                    <article
+                      className={
+                        imageLeft
+                          ? "lg:order-2"
+                          : "lg:order-1"
+                      }
+                    >
+
+                      <div
                         className={`
-                          absolute
-                          -bottom-4
                           grid
                           size-12
                           place-items-center
-                          rounded-xl
-                          text-xs
-                          font-bold
-                          shadow-lg
+                          rounded-2xl
 
                           ${
-                            imageLeft
-                              ? "right-7 bg-gold text-white"
-                              : "left-7 bg-navy text-gold"
+                            index % 2 === 0
+                              ? "bg-cream text-gold-dark"
+                              : "bg-navy text-gold"
                           }
                         `}
                       >
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                    </figure>
-                  </div>
+                        {index === 0 ? (
+                          <Plane size={21} />
+                        ) : (
+                          <MapPin size={21} />
+                        )}
+                      </div>
 
-                  {/* ===========================================
-                      CONTENT
-                  =========================================== */}
+                      <p className="mt-6 text-[11px] font-bold uppercase tracking-[.2em] text-gold-dark">
+                        Trip{" "}
+                        {String(index + 1).padStart(
+                          2,
+                          "0"
+                        )}
+                      </p>
 
-                  <article
-                    className={
-                      imageLeft
-                        ? "lg:order-2"
-                        : "lg:order-1"
-                    }
-                  >
-                    <div
-                      className={`
-                        grid
-                        size-12
-                        place-items-center
-                        rounded-2xl
+                      <h2 className="mt-3 font-serif text-3xl leading-tight text-navy sm:text-4xl">
+                        {trip.title}
+                      </h2>
 
-                        ${
-                          index % 2 === 0
-                            ? "bg-cream text-gold-dark"
-                            : "bg-navy text-gold"
-                        }
-                      `}
-                    >
-                      {index === 0 ? (
-                        <Plane size={21} />
-                      ) : (
-                        <MapPin size={21} />
-                      )}
-                    </div>
+                      <div className="mt-5 h-[2px] w-10 bg-gold" />
 
-                    <p className="mt-6 text-[11px] font-bold uppercase tracking-[.2em] text-gold-dark">
-                      Trip {String(index + 1).padStart(2, "0")}
-                    </p>
+                      <div className="mt-6 space-y-5 text-[15px] leading-8 text-slate-600 sm:text-base">
 
-                    <h2 className="mt-3 font-serif text-3xl leading-tight text-navy sm:text-4xl">
-                      {trip.title}
-                    </h2>
+                        {trip.paragraphs.map(
+                          (
+                            paragraph,
+                            paragraphIndex
+                          ) => (
+                            <p
+                              key={`${index}-${paragraphIndex}`}
+                            >
+                              {paragraph}
+                            </p>
+                          )
+                        )}
 
-                    <div className="mt-5 h-[2px] w-10 bg-gold" />
+                      </div>
 
-                    <div className="mt-6 space-y-5 text-[15px] leading-8 text-slate-600 sm:text-base">
-                      {trip.paragraphs.map((paragraph) => (
-                        <p key={paragraph}>
-                          {paragraph}
-                        </p>
-                      ))}
-                    </div>
-                  </article>
+                    </article>
 
-                  {/* ===========================================
-                      SECTION SEPARATOR
-                  =========================================== */}
+                    {/* =========================================
+                        SEPARATOR
+                    ========================================= */}
 
-                  {index !== displayedTrips.length - 1 && (
-                    <div
-                      aria-hidden="true"
-                      className="
-                        absolute
-                        inset-x-0
-                        bottom-0
-                        flex
-                        items-center
-                        gap-3
-                      "
-                    >
-                      <span className="h-px flex-1 bg-slate-200/70" />
+                    {index !==
+                      displayedTrips.length - 1 && (
+                      <div
+                        aria-hidden="true"
+                        className="
+                          absolute
+                          inset-x-0
+                          bottom-0
+                          flex
+                          items-center
+                          gap-3
+                        "
+                      >
+                        <span className="h-px flex-1 bg-slate-200/70" />
 
-                      <span className="size-1.5 rotate-45 bg-gold/60" />
+                        <span className="size-1.5 rotate-45 bg-gold/60" />
 
-                      <span className="h-px w-8 bg-slate-200/70" />
-                    </div>
-                  )}
-                </section>
-              );
-            })}
+                        <span className="h-px w-8 bg-slate-200/70" />
+                      </div>
+                    )}
+
+                  </section>
+                );
+              }
+            )}
+
           </div>
 
           {/* =================================================
@@ -471,6 +706,7 @@ export function ExcursionPage() {
           ================================================= */}
 
           <div className="mx-auto mt-16 max-w-6xl border-t border-slate-200 pt-8">
+
             <Link
               to="/school"
               className="
@@ -486,6 +722,7 @@ export function ExcursionPage() {
                 hover:text-gold-dark
               "
             >
+
               <span
                 className="
                   grid
@@ -505,10 +742,15 @@ export function ExcursionPage() {
               </span>
 
               Back to home
+
             </Link>
+
           </div>
+
         </div>
+
       </section>
+
     </main>
   );
 }

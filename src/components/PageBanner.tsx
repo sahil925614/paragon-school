@@ -4,14 +4,46 @@ import { Link } from 'react-router-dom'
 type PageBannerProps = {
   title: string
   description: string
+  image?: string | null
+  imageUrl?: string | null
 }
 
-export function PageBanner({ title, description }: PageBannerProps) {
+const mediaBaseUrl =
+  'https://lightskyblue-eland-620788.hostingersite.com/storage/'
+
+function resolveBannerImage(image?: string | null, imageUrl?: string | null) {
+  if (imageUrl && !imageUrl.includes('localhost')) return imageUrl
+  if (!image) return undefined
+  if (/^https?:\/\//i.test(image)) return image
+  return `${mediaBaseUrl}${image.replace(/^\/+/, '')}`
+}
+
+export function PageBanner({
+  title,
+  description,
+  image,
+  imageUrl,
+}: PageBannerProps) {
+  const bannerImage = resolveBannerImage(image, imageUrl)
   return (
     <section className="page-banner relative isolate overflow-hidden bg-navy text-white">
-      <div className="banner-orb banner-orb-one" aria-hidden="true" />
-      <div className="banner-orb banner-orb-two" aria-hidden="true" />
-      <div className="banner-ring pointer-events-none" aria-hidden="true" />
+      {bannerImage && (
+        <>
+          <img
+            src={bannerImage}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 -z-20 size-full object-cover"
+          />
+          <div
+            className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,25,44,.96)_0%,rgba(5,25,44,.82)_52%,rgba(5,25,44,.62)_100%)]"
+            aria-hidden="true"
+          />
+        </>
+      )}
+      {/* <div className="banner-orb banner-orb-one" aria-hidden="true" /> */}
+      {/* <div className="banner-orb banner-orb-two" aria-hidden="true" /> */}
+      {/* <div className="banner-ring pointer-events-none" aria-hidden="true" /> */}
 
       <div className="container relative z-10 flex min-h-[300px] flex-col justify-center py-14 sm:min-h-[340px] sm:py-16 lg:min-h-[390px] lg:py-20">
         <nav aria-label="Breadcrumb" className="banner-reveal flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-slate-300 sm:text-sm">

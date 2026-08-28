@@ -94,6 +94,8 @@ export function AboutDirectorPage() {
 
   return (
     <AboutDetailPage
+      bannerImage={banner?.image}
+      bannerImageUrl={banner?.image_url}
       title={director?.title || banner?.title || page?.title || "About Director"}
       description={
         plainText(banner?.description) ||

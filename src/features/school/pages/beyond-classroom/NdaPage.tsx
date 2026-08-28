@@ -1,53 +1,159 @@
-import {
-  Award,
-  Shield,
-  Target,
-} from "lucide-react";
+import { Award, Shield, Target, Image as ImageIcon } from "lucide-react";
+
 import { useQuery } from "@tanstack/react-query";
-import {
-  useEffect,
-  useRef,
-  type ReactNode,
-} from "react";
+
+import { useEffect, useRef, type ReactNode } from "react";
+
 import { PageBanner } from "../../../../components/PageBanner";
 import { schoolApi } from "../../api/schoolApi";
 import { applyPageSeo, type PageSeo } from "../../utils/pageSeo";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
+type ActivityCardImage = {
+  image?: string | null;
+  image_url?: string | null;
+};
+
 type ActivityCard = {
-  title?: string;
-  description?: string;
-  image?: string;
-  image_url?: string;
+  title?: string | null;
+  description?: string | null;
+  images?: ActivityCardImage[] | null;
+};
+
+type ActivityCardsSettings = {
+  cards?: ActivityCard[] | null;
 };
 
 type NdaSection = {
+  id?: number;
   type: string;
-  title: string;
+  name?: string | null;
+  title?: string | null;
   description?: string | null;
+  button_text?: string | null;
+  button_url?: string | null;
+  image?: string | null;
+  image_url?: string | null;
+  settings?: ActivityCardsSettings | [];
+  sort_order?: number;
   is_active: boolean;
-  settings?: { cards?: ActivityCard[] } | [];
 };
 
 type NdaPageData = {
+  id?: number;
+  site_id?: number;
   title: string;
   slug: string;
+  template?: string;
+  is_home?: boolean;
   seo?: PageSeo;
   sections: NdaSection[];
 };
 
-const storageBaseUrl = "https://lightskyblue-eland-620788.hostingersite.com/storage/";
+/* =========================================================
+   STORAGE
+========================================================= */
 
-function mediaUrl(image?: string, imageUrl?: string) {
-  if (image) return `${storageBaseUrl}${image.replace(/^\/+/, "")}`;
-  if (imageUrl && !imageUrl.includes("localhost")) return imageUrl;
+const storageBaseUrl =
+  "https://lightskyblue-eland-620788.hostingersite.com/storage/";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function mediaUrl(
+  image?: string | null,
+  imageUrl?: string | null,
+): string | undefined {
+  /*
+   * Prefer valid full image_url from API.
+   */
+  if (
+    imageUrl &&
+    !imageUrl.includes("localhost") &&
+    /^https?:\/\//i.test(imageUrl)
+  ) {
+    return imageUrl;
+  }
+
+  /*
+   * Build full URL from storage path.
+   */
+  if (image) {
+    if (/^https?:\/\//i.test(image)) {
+      return image;
+    }
+
+    return `${storageBaseUrl}${image.replace(/^\/+/, "")}`;
+  }
+
+  /*
+   * Final relative image_url fallback.
+   */
+  if (imageUrl && !imageUrl.includes("localhost")) {
+    return imageUrl;
+  }
+
   return undefined;
 }
 
-function plainText(html?: string | null) {
-  return html?.replace(/<[^>]*>/g, "").trim() || "";
+function decodeHtml(text: string): string {
+  return text
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&ldquo;/gi, "“")
+    .replace(/&rdquo;/gi, "”")
+    .replace(/&lsquo;/gi, "‘")
+    .replace(/&rsquo;/gi, "’");
 }
+
+function plainText(html?: string | null): string {
+  if (!html) return "";
+
+  return decodeHtml(
+    html
+      .replace(/<br\s*\/?>/gi, " ")
+      .replace(/<\/p>/gi, " ")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s+/g, " ")
+      .trim(),
+  );
+}
+
+function extractParagraphs(html?: string | null): string[] {
+  if (!html) return [];
+
+  const matches = [...html.matchAll(/<p[^>]*>(.*?)<\/p>/gis)];
+
+  if (!matches.length) {
+    const text = plainText(html);
+    return text ? [text] : [];
+  }
+
+  return matches
+    .map((match) => plainText(match[1]))
+    .filter((paragraph): paragraph is string => Boolean(paragraph));
+}
+
 /* =========================================================
-   SCROLL REVEAL WRAPPER
+   FALLBACK DATA
+========================================================= */
+
+const fallbackImage = "/images/nda.webp";
+
+const fallbackParagraphs = [
+  "At Paragon School, we take immense pride in our association with Mohali Defence Academy, India’s No. 1 NDA Coaching Institute. Together, we aim to provide exceptional guidance and comprehensive preparation for students aspiring to join the National Defence Academy (NDA). With our collaborative efforts, we are setting the gold standard in NDA coaching, ensuring every student has the tools, knowledge, and confidence to achieve their dreams.",
+
+  "At Paragon School, we are more than educators—we are mentors shaping the future of young leaders. Our students are equipped with the skills and knowledge to excel in NDA exams and emerge as confident individuals ready to serve the nation.",
+];
+
+/* =========================================================
+   SCROLL REVEAL
 ========================================================= */
 
 function Reveal({
@@ -65,7 +171,13 @@ function Reveal({
 
   useEffect(() => {
     const element = ref.current;
+
     if (!element) return;
+
+    if (!("IntersectionObserver" in window)) {
+      element.classList.add("nda-visible");
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -75,8 +187,8 @@ function Reveal({
         observer.unobserve(element);
       },
       {
-        threshold: 0.12,
-        rootMargin: "0px 0px -40px 0px",
+        threshold: 0.1,
+        rootMargin: "0px 0px -35px 0px",
       },
     );
 
@@ -110,56 +222,85 @@ function Reveal({
 ========================================================= */
 
 export function NdaPage() {
+  /* =======================================================
+     API
+  ======================================================= */
+
   const { data: page } = useQuery({
     queryKey: ["school-page", "nda"],
+
     queryFn: async () => {
-      const response = await schoolApi.get<{ data: NdaPageData }>("pages/nda");
+      const response = await schoolApi.get<{
+        data: NdaPageData;
+      }>("pages/nda");
+
       return response.data.data;
     },
   });
+
+  /* =======================================================
+     SECTIONS
+  ======================================================= */
+
   const banner = page?.sections.find(
     (section) => section.type === "home_banner" && section.is_active,
   );
+
   const content = page?.sections.find(
     (section) => section.type === "activity_cards_content" && section.is_active,
   );
-  const cards =
+
+  /* =======================================================
+     CARDS
+  ======================================================= */
+
+  const cards: ActivityCard[] =
     content?.settings && !Array.isArray(content.settings)
-      ? content.settings.cards ?? []
+      ? (content.settings.cards ?? [])
       : [];
-  const displayedImage =
-    cards.map((card) => mediaUrl(card.image, card.image_url)).find(Boolean) ||
-    "/images/nda.webp";
-  const firstContent =
-    plainText(cards[0]?.description) || plainText(content?.description);
-  const secondContent = plainText(cards[1]?.description);
-  const description =
-    plainText(banner?.description) ||
-    "Paragon School takes immense pride in its association with Mohali Defence Academy, India's No. 1 NDA Coaching Institute.";
+
+  /* =======================================================
+     SEO
+  ======================================================= */
 
   useEffect(() => {
     applyPageSeo(page?.seo);
   }, [page]);
 
+  /* =======================================================
+     BANNER
+  ======================================================= */
+
+  const bannerDescription =
+    plainText(banner?.description) || "Explore NDA at Paragon Senior School.";
+
   return (
     <>
       <main className="overflow-hidden bg-[#fcfbf8]">
-
         {/* =====================================================
-            EXISTING SENIOR SCHOOL BANNER
+            PAGE BANNER
         ===================================================== */}
 
         <PageBanner
+          image={banner?.image}
+          imageUrl={banner?.image_url}
           title={banner?.title || page?.title || "NDA"}
-          description={description}
+          description={bannerDescription}
         />
 
         {/* =====================================================
             MAIN CONTENT
         ===================================================== */}
 
-        <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">
-
+        <section
+          className="
+            relative
+            overflow-hidden
+            py-16
+            sm:py-20
+            lg:py-24
+          "
+        >
           {/* BACKGROUND DECORATIONS */}
 
           <div
@@ -167,9 +308,9 @@ export function NdaPage() {
             className="
               pointer-events-none
               absolute
-              -left-40
-              top-16
-              size-[420px]
+              -left-44
+              top-20
+              size-[430px]
               rounded-full
               border-[62px]
               border-navy/[.025]
@@ -185,8 +326,8 @@ export function NdaPage() {
               top-[38%]
               size-[390px]
               rounded-full
-              border-[55px]
-              border-gold/[.06]
+              border-[58px]
+              border-gold/[.055]
             "
           />
 
@@ -204,32 +345,16 @@ export function NdaPage() {
           />
 
           <div className="container relative">
-
             {/* =================================================
-                INTRO HEADING
+                SECTION HEADING
             ================================================= */}
 
-            <Reveal
-              direction="up"
-              className="mx-auto max-w-4xl text-center"
-            >
-              <p
-                className="
-                  text-[11px]
-                  font-bold
-                  uppercase
-                  tracking-[.22em]
-                  text-gold-dark
-                "
-              >
-                NDA Preparation
-              </p>
+            <Reveal direction="up" className="mx-auto max-w-4xl text-center">
+            
 
               <h2
                 className="
-                  mx-auto
-                  mt-4
-                  max-w-4xl
+                  mt-3
                   font-serif
                   text-3xl
                   leading-tight
@@ -238,15 +363,11 @@ export function NdaPage() {
                   lg:text-5xl
                 "
               >
-                {content?.title || page?.title || "Mohali Defence Academy:"}
-                <span className="block">
-                  Achieve Your NDA Dreams with Paragon School
-                </span>
+                {content?.title || page?.title || "NDA"}
               </h2>
 
-              {/* ACCENT */}
-
               <div
+                aria-hidden="true"
                 className="
                   mx-auto
                   mt-6
@@ -255,366 +376,475 @@ export function NdaPage() {
                   justify-center
                   gap-2
                 "
-                aria-hidden="true"
               >
                 <span className="h-[2px] w-10 bg-gold" />
-
                 <span className="size-1.5 rotate-45 bg-gold" />
-
                 <span className="h-[2px] w-10 bg-gold" />
               </div>
             </Reveal>
 
             {/* =================================================
-                FEATURE IMAGE
-            ================================================= */}
-
-            <Reveal
-              direction="scale"
-              delay={120}
-              className="mx-auto mt-12 max-w-6xl sm:mt-14"
-            >
-              <figure
-                className="
-                  group
-                  relative
-                  overflow-hidden
-                  rounded-[28px]
-                  bg-white
-                  p-2
-                  shadow-[0_25px_70px_-38px_rgba(16,42,67,.5)]
-                  sm:p-3
-                "
-              >
-                {/* NAVY BACK DECORATION */}
-
-                <div
-                  aria-hidden="true"
-                  className="
-                    absolute
-                    -right-12
-                    -top-12
-                    size-40
-                    rounded-full
-                    bg-navy/[.05]
-                  "
-                />
-
-                <div
-                  aria-hidden="true"
-                  className="
-                    absolute
-                    -bottom-16
-                    -left-16
-                    size-44
-                    rounded-full
-                    bg-gold/[.08]
-                  "
-                />
-
-                {/* IMAGE */}
-
-                <div className="relative overflow-hidden rounded-[22px] bg-[#f3f1eb]">
-                  <img
-                    src={displayedImage}
-                    alt="Paragon School students with Mohali Defence Academy representatives"
-                    className="
-                      h-auto
-                      w-full
-                      object-contain
-                      transition
-                      duration-700
-                      ease-out
-                      group-hover:scale-[1.015]
-                    "
-                  />
-
-                  {/* subtle bottom gradient */}
-
-                  <div
-                    aria-hidden="true"
-                    className="
-                      pointer-events-none
-                      absolute
-                      inset-x-0
-                      bottom-0
-                      h-24
-                      bg-gradient-to-t
-                      from-navy/10
-                      to-transparent
-                    "
-                  />
-                </div>
-
-                {/* SMALL BADGE */}
-
-                <div
-                  className="
-                    absolute
-                    bottom-7
-                    left-7
-                    hidden
-                    items-center
-                    gap-3
-                    rounded-xl
-                    border
-                    border-white/40
-                    bg-white/90
-                    px-4
-                    py-3
-                    shadow-lg
-                    backdrop-blur-md
-                    sm:flex
-                  "
-                >
-                  <span
-                    className="
-                      grid
-                      size-9
-                      place-items-center
-                      rounded-lg
-                      bg-navy
-                      text-gold
-                    "
-                  >
-                    <Shield size={17} />
-                  </span>
-
-                  <span
-                    className="
-                      text-xs
-                      font-bold
-                      uppercase
-                      tracking-[.12em]
-                      text-navy
-                    "
-                  >
-                    NDA
-                  </span>
-                </div>
-              </figure>
-            </Reveal>
-
-            {/* =================================================
-                CONTENT SECTION
+                DYNAMIC API CARDS
             ================================================= */}
 
             <div
               className="
                 mx-auto
                 mt-14
-                grid
                 max-w-6xl
-                gap-10
-                lg:mt-16
-                lg:grid-cols-[.36fr_.64fr]
-                lg:gap-14
+                space-y-16
+                sm:mt-16
               "
             >
+              {cards.map((card, cardIndex) => {
+                /* =============================================
+                   CARD DATA
+                ============================================= */
 
-              {/* ===============================================
-                  LEFT
-              =============================================== */}
+                const cardTitle =
+                  card.title ||
+                  "Mohali Defence Academy: Achieve Your NDA Dreams with Paragon School";
 
-              <Reveal direction="left">
-                <div className="lg:sticky lg:top-32">
+                const apiImages =
+                  card.images
+                    ?.map((item) => mediaUrl(item.image, item.image_url))
+                    .filter((image): image is string => Boolean(image)) ?? [];
 
-                  <div
+                const displayedImages =
+                  apiImages.length > 0 ? apiImages : [fallbackImage];
+
+                const paragraphs = extractParagraphs(card.description);
+
+                const displayedParagraphs =
+                  paragraphs.length > 0 ? paragraphs : fallbackParagraphs;
+
+                return (
+                  <article
+                    key={`${cardTitle}-${cardIndex}`}
                     className="
-                      grid
-                      size-14
-                      place-items-center
-                      rounded-2xl
-                      bg-navy
-                      text-gold
-                      shadow-[0_12px_30px_-15px_rgba(16,42,67,.55)]
-                    "
-                  >
-                    <Target size={25} />
-                  </div>
-
-                  <p
-                    className="
-                      mt-6
-                      text-[11px]
-                      font-bold
-                      uppercase
-                      tracking-[.2em]
-                      text-gold-dark
-                    "
-                  >
-                    Paragon School
-                  </p>
-
-                  <h3
-                    className="
-                      mt-3
-                      max-w-sm
-                      font-serif
-                      text-3xl
-                      leading-tight
-                      text-navy
-                      sm:text-4xl
-                    "
-                  >
-                    Preparing students for their NDA dreams.
-                  </h3>
-
-                  <div
-                    className="mt-6 flex items-center gap-2"
-                    aria-hidden="true"
-                  >
-                    <span className="h-[2px] w-12 bg-gold" />
-                    <span className="size-1.5 rounded-full bg-navy" />
-                  </div>
-                </div>
-              </Reveal>
-
-              {/* ===============================================
-                  RIGHT CONTENT
-              =============================================== */}
-
-              <div className="space-y-8">
-
-                <Reveal
-                  direction="right"
-                  delay={80}
-                >
-                  <div
-                    className="
-                      relative
                       overflow-hidden
-                      rounded-[24px]
+                      rounded-[30px]
+                      border
+                      border-slate-200/80
                       bg-white
-                      p-7
-                      shadow-[0_18px_55px_-40px_rgba(16,42,67,.4)]
-                      sm:p-9
+                      shadow-[0_30px_80px_-48px_rgba(16,42,67,.5)]
                     "
                   >
-                    {/* GOLD TOP DETAIL */}
+                    {/* =========================================
+                        CARD TITLE
+                    ========================================= */}
 
-                    <span
-                      aria-hidden="true"
+                    <Reveal direction="up">
+                      <div
+                        className="
+                          relative
+                          overflow-hidden
+                          border-b
+                          border-slate-100
+                          bg-[#f7f5ef]
+                          px-6
+                          py-8
+                          sm:px-9
+                          sm:py-9
+                          lg:px-11
+                        "
+                      >
+                        {/* decorative circle */}
+
+                        <div
+                          aria-hidden="true"
+                          className="
+                            pointer-events-none
+                            absolute
+                            -right-16
+                            -top-16
+                            size-48
+                            rounded-full
+                            border-[30px]
+                            border-gold/[.08]
+                          "
+                        />
+
+                        <div className="relative">
+                          <div
+                            className="
+                              flex
+                              items-center
+                              gap-3
+                            "
+                          >
+                            <span
+                              className="
+                                grid
+                                size-10
+                                place-items-center
+                                rounded-xl
+                                bg-navy
+                                text-gold
+                              "
+                            >
+                              <Shield size={18} />
+                            </span>
+
+                            <span
+                              className="
+                                text-[10px]
+                                font-bold
+                                uppercase
+                                tracking-[.18em]
+                                text-gold-dark
+                              "
+                            >
+                              Defence Preparation
+                            </span>
+                          </div>
+
+                          <h3
+                            className="
+                              mt-5
+                              max-w-4xl
+                              font-serif
+                              text-2xl
+                              leading-tight
+                              text-navy
+                              sm:text-3xl
+                              lg:text-[38px]
+                            "
+                          >
+                            {cardTitle}
+                          </h3>
+
+                          <div className="mt-5 h-[2px] w-12 bg-gold" />
+                        </div>
+                      </div>
+                    </Reveal>
+
+                    {/* =========================================
+                        IMAGE
+                    ========================================= */}
+
+                    {displayedImages.map((image, imageIndex) => (
+                      <Reveal
+                        key={`${image}-${imageIndex}`}
+                        direction="scale"
+                        delay={80}
+                        className="
+                            px-5
+                            pt-6
+                            sm:px-8
+                            sm:pt-8
+                            lg:px-10
+                            lg:pt-10
+                          "
+                      >
+                        <figure
+                          className="
+                              nda-image-card
+                              group
+                              relative
+                            "
+                        >
+                          {/* navy background block */}
+
+                          <div
+                            aria-hidden="true"
+                            className="
+                                absolute
+                                -bottom-4
+                                -left-4
+                                h-[65%]
+                                w-[58%]
+                                rounded-[28px]
+                                bg-navy
+                              "
+                          />
+
+                          {/* gold decorative ring */}
+
+                          <div
+                            aria-hidden="true"
+                            className="
+                                absolute
+                                -right-4
+                                -top-4
+                                size-28
+                                rounded-full
+                                border-[16px]
+                                border-gold/20
+                              "
+                          />
+
+                          {/* image frame */}
+
+                          <div
+                            className="
+                                relative
+                                overflow-hidden
+                                rounded-[28px]
+                                bg-white
+                                p-2
+                                shadow-[0_25px_65px_-35px_rgba(16,42,67,.5)]
+                                sm:p-2.5
+                              "
+                          >
+                            <div
+                              className="
+                                  relative
+                                  flex
+                                  min-h-[220px]
+                                  items-center
+                                  justify-center
+                                  overflow-hidden
+                                  rounded-[21px]
+                                  bg-[#f2f1ed]
+                                  sm:min-h-[320px]
+                                  lg:min-h-[420px]
+                                "
+                            >
+                              <img
+                                src={image}
+                                alt={`${cardTitle} - ${imageIndex + 1}`}
+                                loading={imageIndex === 0 ? "eager" : "lazy"}
+                                className="
+                                    h-auto
+                                    max-h-[620px]
+                                    w-full
+                                    object-contain
+                                    transition
+                                    duration-700
+                                    ease-out
+                                    group-hover:scale-[1.01]
+                                  "
+                              />
+
+                              {/* subtle gradient */}
+
+                              <div
+                                aria-hidden="true"
+                                className="
+                                    pointer-events-none
+                                    absolute
+                                    inset-x-0
+                                    bottom-0
+                                    h-24
+                                    bg-gradient-to-t
+                                    from-navy/[.08]
+                                    to-transparent
+                                  "
+                              />
+                            </div>
+                          </div>
+
+                          {/* photo badge */}
+
+                          <div
+                            className="
+                                absolute
+                                bottom-6
+                                left-6
+                                hidden
+                                items-center
+                                gap-3
+                                rounded-xl
+                                border
+                                border-white/50
+                                bg-white/90
+                                px-4
+                                py-3
+                                shadow-lg
+                                backdrop-blur-md
+                                sm:flex
+                              "
+                          >
+                            <span
+                              className="
+                                  grid
+                                  size-9
+                                  place-items-center
+                                  rounded-lg
+                                  bg-navy
+                                  text-gold
+                                "
+                            >
+                              <ImageIcon size={16} />
+                            </span>
+
+                            <span
+                              className="
+                                  text-[10px]
+                                  font-bold
+                                  uppercase
+                                  tracking-[.13em]
+                                  text-navy
+                                "
+                            >
+                              NDA Programme
+                            </span>
+                          </div>
+                        </figure>
+                      </Reveal>
+                    ))}
+
+                    {/* =========================================
+                        COMPLETE CONTENT
+                    ========================================= */}
+
+                    <Reveal
+                      direction="up"
+                      delay={100}
                       className="
-                        absolute
-                        left-0
-                        top-0
-                        h-1
-                        w-24
-                        bg-gold
+                        px-6
+                        pb-9
+                        pt-12
+                        sm:px-9
+                        sm:pb-11
+                        sm:pt-14
+                        lg:px-11
                       "
-                    />
-
-                    <div className="flex gap-5">
-
-                      <span
+                    >
+                      <div
                         className="
-                          mt-1
-                          hidden
-                          size-10
-                          shrink-0
-                          place-items-center
-                          rounded-xl
-                          bg-cream
-                          text-gold-dark
-                          sm:grid
+                          grid
+                          gap-8
+                          lg:grid-cols-[.3fr_.7fr]
+                          lg:gap-14
                         "
                       >
-                        <Award size={20} />
-                      </span>
+                        {/* LEFT INTRO */}
 
-                      <p
-                        className="
-                          text-[15px]
-                          leading-8
-                          text-slate-600
-                          sm:text-base
-                        "
-                      >
-{firstContent || "At Paragon School, we take immense pride in our association with Mohali Defence Academy, India's leading NDA coaching institute. Together, we provide exceptional guidance and comprehensive preparation, giving students the tools, knowledge and confidence to achieve their NDA dreams."}
-                      </p>
-                    </div>
-                  </div>
-                </Reveal>
+                        <div>
+                          <div
+                            className="
+                              grid
+                              size-13
+                              place-items-center
+                              rounded-2xl
+                              bg-cream
+                              text-gold-dark
+                            "
+                          >
+                            <Award size={23} />
+                          </div>
 
-                <Reveal
-                  direction="right"
-                  delay={160}
-                >
-                  <div
-                    className="
-                      relative
-                      overflow-hidden
-                      rounded-[24px]
-                      bg-navy
-                      p-7
-                      text-white
-                      shadow-[0_22px_60px_-35px_rgba(16,42,67,.65)]
-                      sm:p-9
-                    "
-                  >
-                    {/* BACKGROUND GRID */}
+                          <p
+                            className="
+                              mt-6
+                              text-[11px]
+                              font-bold
+                              uppercase
+                              tracking-[.2em]
+                              text-gold-dark
+                            "
+                          >
+                            Paragon School
+                          </p>
 
-                    <div
-                      aria-hidden="true"
-                      className="
-                        pointer-events-none
-                        absolute
-                        inset-0
-                        opacity-[.045]
-                        [background-image:linear-gradient(rgba(255,255,255,.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.8)_1px,transparent_1px)]
-                        [background-size:30px_30px]
-                      "
-                    />
+                          <h4
+                            className="
+                              mt-3
+                              max-w-xs
+                              font-serif
+                              text-2xl
+                              leading-tight
+                              text-navy
+                              sm:text-3xl
+                            "
+                          >
+                            Preparing students for their NDA dreams.
+                          </h4>
 
-                    {/* CIRCLE */}
+                          <div
+                            className="
+                              mt-5
+                              flex
+                              items-center
+                              gap-2
+                            "
+                            aria-hidden="true"
+                          >
+                            <span className="h-[2px] w-10 bg-gold" />
+                            <span className="size-1.5 rounded-full bg-navy" />
+                          </div>
+                        </div>
 
-                    <div
-                      aria-hidden="true"
-                      className="
-                        absolute
-                        -right-16
-                        -top-16
-                        size-44
-                        rounded-full
-                        border-[28px]
-                        border-gold/10
-                      "
-                    />
+                        {/* ALL API PARAGRAPHS */}
 
-                    <div className="relative flex gap-5">
+                        <div className="space-y-5">
+                          {displayedParagraphs.map(
+                            (paragraph, paragraphIndex) => (
+                              <div
+                                key={`${paragraph}-${paragraphIndex}`}
+                                className="
+                                  relative
+                                  overflow-hidden
+                                  rounded-[22px]
+                                  border
+                                  border-slate-100
+                                  bg-[#faf9f6]
+                                  p-6
+                                  sm:p-7
+                                "
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className="
+                                    absolute
+                                    left-0
+                                    top-0
+                                    h-full
+                                    w-[3px]
+                                    bg-gold
+                                  "
+                                />
 
-                      <span
-                        className="
-                          mt-1
-                          hidden
-                          size-10
-                          shrink-0
-                          place-items-center
-                          rounded-xl
-                          bg-white/10
-                          text-gold
-                          sm:grid
-                        "
-                      >
-                        <Shield size={20} />
-                      </span>
+                                <p
+                                  className="
+                                    text-[15px]
+                                    leading-8
+                                    text-slate-600
+                                    sm:text-base
+                                  "
+                                >
+                                  {paragraph}
+                                </p>
+                              </div>
+                            ),
+                          )}
 
-                      <p
-                        className="
-                          text-[15px]
-                          leading-8
-                          text-slate-200
-                          sm:text-base
-                        "
-                      >
-{secondContent || "At Paragon School, we are more than educators—we are mentors shaping future leaders. Students gain the skills and knowledge to excel in NDA exams and emerge as confident individuals ready to serve the nation."}
-                      </p>
-                    </div>
-                  </div>
-                </Reveal>
-              </div>
+                          {/* final accent */}
+                        </div>
+                      </div>
+                    </Reveal>
+                  </article>
+                );
+              })}
             </div>
+
+            {/* =================================================
+                EMPTY STATE
+            ================================================= */}
+
+            {page && cards.length === 0 && (
+              <div
+                className="
+                  mx-auto
+                  mt-14
+                  max-w-4xl
+                  rounded-[26px]
+                  border
+                  border-slate-200
+                  bg-white
+                  p-8
+                  text-center
+                "
+              >
+                <Shield size={28} className="mx-auto text-gold-dark" />
+
+                <p className="mt-4 text-sm text-slate-500">
+                  NDA programme information is currently unavailable.
+                </p>
+              </div>
+            )}
           </div>
         </section>
       </main>
@@ -624,10 +854,6 @@ export function NdaPage() {
       ===================================================== */}
 
       <style>{`
-
-        /* =====================================================
-           BASE REVEAL
-        ===================================================== */
 
         .nda-reveal {
           opacity: 0;
@@ -640,21 +866,21 @@ export function NdaPage() {
         }
 
         .nda-reveal-up {
-          transform: translateY(55px);
+          transform: translateY(50px);
         }
 
         .nda-reveal-left {
-          transform: translateX(-60px);
+          transform: translateX(-55px);
         }
 
         .nda-reveal-right {
-          transform: translateX(60px);
+          transform: translateX(55px);
         }
 
         .nda-reveal-scale {
           transform:
-            translateY(35px)
-            scale(.94);
+            translateY(28px)
+            scale(.97);
         }
 
         .nda-reveal.nda-visible {
@@ -662,35 +888,27 @@ export function NdaPage() {
           transform: none;
         }
 
-
-        /* =====================================================
-           IMAGE ENTRANCE
-        ===================================================== */
-
-        .nda-reveal-scale.nda-visible figure {
-          animation:
-            ndaImageFloat
-            6s
-            ease-in-out
-            1s
-            infinite;
+        .nda-image-card {
+          transition:
+            transform .55s cubic-bezier(.22,1,.36,1);
         }
 
-        @keyframes ndaImageFloat {
-          0%,
-          100% {
-            transform: translateY(0);
-          }
-
-          50% {
-            transform: translateY(-5px);
-          }
+        .nda-image-card:hover {
+          transform: translateY(-4px);
         }
 
+        @media (max-width: 767px) {
 
-        /* =====================================================
-           REDUCED MOTION
-        ===================================================== */
+          .nda-reveal-left,
+          .nda-reveal-right {
+            transform: translateY(40px);
+          }
+
+          .nda-reveal.nda-visible {
+            transform: none;
+          }
+
+        }
 
         @media (prefers-reduced-motion: reduce) {
 
@@ -704,9 +922,11 @@ export function NdaPage() {
             transition: none !important;
           }
 
-          .nda-reveal-scale.nda-visible figure {
-            animation: none !important;
+          .nda-image-card {
+            transform: none !important;
+            transition: none !important;
           }
+
         }
 
       `}</style>
