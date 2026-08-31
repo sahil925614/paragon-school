@@ -86,7 +86,7 @@ export function MissionVisionPage() {
         "The purpose and principles that guide education at Paragon."
       }
       eyebrow={mission?.name || "Our direction"}
-      introduction="Shaping confident learners who think with clarity, act with integrity and contribute with compassion."
+      introduction=""
       paragraphs={paragraphs.length ? paragraphs : fallbackParagraphs}
       image={
         mediaUrl(mission?.image, mission?.image_url) ||

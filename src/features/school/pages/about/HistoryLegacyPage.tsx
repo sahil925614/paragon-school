@@ -79,7 +79,7 @@ export function HistoryLegacyPage() {
         "Explore the journey and enduring legacy of Paragon School."
       }
       eyebrow={history?.name || "Our story"}
-      introduction="A journey of educational purpose, enduring values and meaningful progress since 1981."
+      introduction=""
       paragraphs={paragraphs.length ? paragraphs : fallbackParagraphs}
       image={
         mediaUrl(history?.image, history?.image_url) ||

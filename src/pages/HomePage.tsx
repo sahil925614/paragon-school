@@ -2242,6 +2242,9 @@ function YearBookPreview({ url, title }: YearBookPreviewProps) {
   const [progress, setProgress] = useState(4);
   const [isLoaded, setIsLoaded] = useState(false);
   const [previewAttempt, setPreviewAttempt] = useState(0);
+  const [useMobileViewer] = useState(() =>
+    window.matchMedia("(max-width: 767px)").matches,
+  );
   const viewerShellLoadedRef = useRef(false);
   const minimumWaitFinishedRef = useRef(false);
   const completionStartedRef = useRef(false);
@@ -2315,7 +2318,36 @@ function YearBookPreview({ url, title }: YearBookPreviewProps) {
 
   return (
     <div className="relative overflow-hidden rounded-[18px] bg-slate-100">
-      {!isLoaded && (
+      {useMobileViewer ? (
+        <div className="grid h-[500px] place-items-center bg-[linear-gradient(145deg,#f8fafb,#edf2f5)] px-6 text-center">
+          <div className="max-w-xs">
+            <span className="mx-auto grid size-16 place-items-center rounded-2xl bg-navy text-white shadow-[0_16px_35px_-15px_rgba(16,42,67,.65)]">
+              <BookOpenCheck size={28} strokeWidth={1.8} />
+            </span>
+            <p className="mt-6 text-[10px] font-bold uppercase tracking-[.2em] text-[#c72c3b]">
+              Mobile Year Book
+            </p>
+            <h3 className="mt-3 font-serif text-3xl leading-tight text-navy">
+              View the complete publication
+            </h3>
+            <p className="mt-4 text-sm leading-6 text-slate-500">
+              Open the year book in your phone&apos;s PDF viewer to browse every
+              page smoothly.
+            </p>
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-6 inline-flex items-center gap-3 rounded-full bg-navy px-6 py-3.5 text-[10px] font-bold uppercase tracking-[.12em] text-white shadow-lg transition hover:bg-[#c72c3b]"
+            >
+              Open Full Year Book
+              <ArrowRight size={15} />
+            </a>
+          </div>
+        </div>
+      ) : (
+        <>
+          {!isLoaded && (
         <div
           className="absolute inset-0 z-20 grid place-items-center bg-[#f5f7f8] px-6"
           role="status"
@@ -2384,13 +2416,16 @@ function YearBookPreview({ url, title }: YearBookPreviewProps) {
         </div>
       )} */}
 
-      <iframe
-        key={previewAttempt}
-        src={url}
-        title={title}
-        onLoad={handleLoad}
-        className="h-[500px] w-full border-0 sm:h-[650px] lg:h-[760px]"
-      />
+          <iframe
+            key={previewAttempt}
+            src={url}
+            title={title}
+            onLoad={handleLoad}
+            allowFullScreen
+            className="h-[500px] w-full border-0 sm:h-[650px] lg:h-[760px]"
+          />
+        </>
+      )}
     </div>
   );
 }
