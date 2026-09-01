@@ -1,8 +1,4 @@
-import {
-  Dumbbell,
-  Palette,
-  UsersRound,
-} from "lucide-react";
+import { Dumbbell, Palette, UsersRound } from "lucide-react";
 
 import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -11,25 +7,21 @@ import { PageBanner } from "../../../../components/PageBanner";
 import { schoolApi } from "../../api/schoolApi";
 import { applyPageSeo, type PageSeo } from "../../utils/pageSeo";
 
-
 type Club = {
   name: string;
   teachers: string;
 };
-
 
 type ClassGroup = {
   classes: string;
   clubs: Club[];
 };
 
-
 type ClubSection = {
   title: string;
   icon: LucideIcon;
   groups: ClassGroup[];
 };
-
 
 /* =========================================================
    CLUB DATA
@@ -63,7 +55,7 @@ type ClubActivitiesSection = {
 };
 
 type ClubActivitiesPageData = {
-  title: string;
+  title?: string;
   slug: string;
   seo?: PageSeo;
   sections: ClubActivitiesSection[];
@@ -107,13 +99,11 @@ const clubSections: ClubSection[] = [
           },
           {
             name: "Mould & Magic (Pottery)",
-            teachers:
-              "Ms. Sunanda, Ms. Sonia Kotwal, Ms. Sukjinderkaur",
+            teachers: "Ms. Sunanda, Ms. Sonia Kotwal, Ms. Sukjinderkaur",
           },
           {
             name: "Creative Hands",
-            teachers:
-              "Ms. Neha, Ms. Amandeep Kaur, Ms. Priyanka Kardam",
+            teachers: "Ms. Neha, Ms. Amandeep Kaur, Ms. Priyanka Kardam",
           },
           {
             name: "Symphony",
@@ -241,7 +231,6 @@ const clubSections: ClubSection[] = [
   },
 ];
 
-
 /* =========================================================
    PAGE
 ========================================================= */
@@ -261,10 +250,13 @@ export function ClubActivitiesPage() {
     (section) => section.type === "home_banner" && section.is_active,
   );
   const content = clubActivitiesPage?.sections.find(
-    (section) => section.type === "club_activities_content" && section.is_active,
+    (section) =>
+      section.type === "club_activities_content" && section.is_active,
   );
   const settings =
-    content?.settings && !Array.isArray(content.settings) ? content.settings : undefined;
+    content?.settings && !Array.isArray(content.settings)
+      ? content.settings
+      : undefined;
   const apiClubSections: ClubSection[] = settings
     ? [
         {
@@ -279,7 +271,9 @@ export function ClubActivitiesPage() {
         },
       ].filter((section) => section.groups.length > 0)
     : [];
-  const displayedSections = apiClubSections.length ? apiClubSections : clubSections;
+  const displayedSections = apiClubSections.length
+    ? apiClubSections
+    : clubSections;
 
   useEffect(() => {
     applyPageSeo(clubActivitiesPage?.seo);
@@ -290,23 +284,18 @@ export function ClubActivitiesPage() {
       <PageBanner
         image={banner?.image}
         imageUrl={banner?.image_url}
-        title="Clubs Activity"
-        description="Activity Club Â· Sports Club"
+        title={banner?.title || clubActivitiesPage?.title || "Club Activity"}
+        description={plainText(banner?.description) || "Club Activity"}
       />
 
       <main className="overflow-hidden">
         {displayedSections.map((section, index) => (
-          <ClubCategory
-            key={section.title}
-            section={section}
-            index={index}
-          />
+          <ClubCategory key={section.title} section={section} index={index} />
         ))}
       </main>
     </>
   );
 }
-
 
 /* =========================================================
    CLUB CATEGORY
@@ -390,11 +379,7 @@ function ClubCategory({
         {!isSports && (
           <div className="mb-8 flex items-center gap-4 sm:mb-10">
             <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-white text-gold-dark shadow-sm ring-1 ring-slate-200">
-              <Icon
-                size={22}
-                strokeWidth={1.8}
-                aria-hidden="true"
-              />
+              <Icon size={22} strokeWidth={1.8} aria-hidden="true" />
             </div>
 
             <div>
@@ -417,31 +402,27 @@ function ClubCategory({
             SPORTS CLUB FEATURE HEADER
         ====================================================== */}
 
-       {isSports && (
-  <div className="mb-9 flex items-center gap-4 sm:mb-10">
-    <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-navy text-gold shadow-lg shadow-navy/10">
-      <Icon
-        size={22}
-        strokeWidth={1.8}
-        aria-hidden="true"
-      />
-    </div>
+        {isSports && (
+          <div className="mb-9 flex items-center gap-4 sm:mb-10">
+            <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-navy text-gold shadow-lg shadow-navy/10">
+              <Icon size={22} strokeWidth={1.8} aria-hidden="true" />
+            </div>
 
-    <div>
-      <h2
-        id={`club-section-${index}`}
-        className="font-serif text-3xl leading-tight text-navy sm:text-4xl"
-      >
-        {section.title}
-      </h2>
+            <div>
+              <h2
+                id={`club-section-${index}`}
+                className="font-serif text-3xl leading-tight text-navy sm:text-4xl"
+              >
+                {section.title}
+              </h2>
 
-      <div
-        className="mt-3 h-[2px] w-10 rounded-full bg-gold"
-        aria-hidden="true"
-      />
-    </div>
-  </div>
-)}
+              <div
+                className="mt-3 h-[2px] w-10 rounded-full bg-gold"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+        )}
 
         {/* =====================================================
             CLASS GROUPS
@@ -449,11 +430,7 @@ function ClubCategory({
 
         <div className="grid items-start gap-5 lg:grid-cols-2 lg:gap-6">
           {section.groups.map((group) => (
-            <ClubTable
-              key={group.classes}
-              group={group}
-              sports={isSports}
-            />
+            <ClubTable key={group.classes} group={group} sports={isSports} />
           ))}
         </div>
       </div>
@@ -461,18 +438,11 @@ function ClubCategory({
   );
 }
 
-
 /* =========================================================
    CLUB TABLE
 ========================================================= */
 
-function ClubTable({
-  group,
-  sports,
-}: {
-  group: ClassGroup;
-  sports: boolean;
-}) {
+function ClubTable({ group, sports }: { group: ClassGroup; sports: boolean }) {
   return (
     <article
       className="
@@ -524,11 +494,7 @@ function ClubTable({
           </div>
 
           <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/10 text-gold ring-1 ring-white/10">
-            <UsersRound
-              size={19}
-              strokeWidth={1.8}
-              aria-hidden="true"
-            />
+            <UsersRound size={19} strokeWidth={1.8} aria-hidden="true" />
           </div>
         </div>
       </header>
@@ -582,9 +548,7 @@ function ClubTable({
                 aria-hidden="true"
               />
 
-              <p className="font-semibold leading-6 text-navy">
-                {club.name}
-              </p>
+              <p className="font-semibold leading-6 text-navy">{club.name}</p>
             </div>
 
             {/* Teachers */}
@@ -603,4 +567,3 @@ function ClubTable({
     </article>
   );
 }
-

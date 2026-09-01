@@ -289,7 +289,7 @@ export function KidsDisclosurePage() {
               School Information
             </span>
 
-            <h2 className="mt-5 font-serif text-4xl font-bold leading-tight text-[#34305c] sm:text-5xl">
+            <h2 className="mt-3 font-serif text-2xl font-bold text-[#32305f] sm:text-4xl lg:text-5xl">
               {disclosurePage?.title || "Mandatory Disclosure Information"}
             </h2>
           </div>
@@ -301,98 +301,140 @@ export function KidsDisclosurePage() {
         ====================================================== */}
 
         <DisclosureSection
-          number="A"
-          revealDirection="left"
-          revealDelay={0}
-          title={sectionTitle(generalSection?.title, "General Information")}
-          icon={School}
-          color="#ef5f6c"
-          lightColor="#fff3f4"
-        >
-          <StandardTable
-            headings={["S.No.", "Information", "Details"]}
-            rows={generalRows.length ? generalRows.map((row) => [row.information || "", row.details || ""]) : generalInformation}
-            color="#ef5f6c"
-          />
-        </DisclosureSection>
+  number="A"
+  revealDirection="left"
+  revealDelay={0}
+  title={sectionTitle(generalSection?.title, "General Information")}
+  description={generalSection?.description}
+  icon={School}
+  color="#ef5f6c"
+  lightColor="#fff3f4"
+>
+  <StandardTable
+    headings={["S.No.", "Information", "Details"]}
+    rows={
+      generalRows.length
+        ? generalRows.map((row) => [
+            row.information || "",
+            row.details || "",
+          ])
+        : generalInformation
+    }
+    color="#ef5f6c"
+  />
+</DisclosureSection>
 
         {/* =====================================================
             B. DOCUMENTS
         ====================================================== */}
 
         <DisclosureSection
-          number="B"
-          revealDirection="right"
-          revealDelay={70}
-          title={sectionTitle(documentsSection?.title, "Documents And Information")}
-          icon={FileCheck2}
-          color="#f2a51a"
-          lightColor="#fff8e8"
-        >
-          <DocumentTable rows={documentRows.length ? documentRows : documentsInformation.map((information) => ({ information, link_label: "Click here to access" }))} color="#f2a51a" />
-
-          <div className="mt-6 flex items-start gap-3 rounded-[18px] border border-[#f2a51a]/15 bg-[#fff9ec] px-5 py-4">
-            <div className="mt-1 size-2 shrink-0 rounded-full bg-[#f2a51a]" />
-
-            <p className="text-[13px] leading-6 text-[#666274]">
-              <strong className="text-[#34305c]">Note:</strong> The schools
-              needs to upload the self attested copies of above listed
-              documents by chairman/manager/secretary and principal. In case,
-              it is noticed at later stage that uploaded documents are not
-              genuine then school shall be liable for action as per norms.
-            </p>
-          </div>
-        </DisclosureSection>
+  number="B"
+  revealDirection="right"
+  revealDelay={70}
+  title={sectionTitle(
+    documentsSection?.title,
+    "Documents And Information"
+  )}
+  description={documentsSection?.description}
+  icon={FileCheck2}
+  color="#f2a51a"
+  lightColor="#fff8e8"
+>
+  <DocumentTable
+    rows={
+      documentRows.length
+        ? documentRows
+        : documentsInformation.map((information) => ({
+            information,
+            link_label: "Click here to access",
+          }))
+    }
+    color="#f2a51a"
+  />
+</DisclosureSection>
 
         {/* =====================================================
             C. RESULT & ACADEMICS
         ====================================================== */}
 
-        <DisclosureSection
-          number="C"
-          revealDirection="left"
-          revealDelay={70}
-          title={sectionTitle(academicsSection?.title, "Result And Academics")}
-          icon={GraduationCap}
-          color="#37a9df"
-          lightColor="#eef9fe"
-        >
-          <DocumentTable rows={academicRows.length ? academicRows : resultAcademics.map((information) => ({ information, link_label: "Click here to access" }))} color="#37a9df" />
-        </DisclosureSection>
+      <DisclosureSection
+  number="C"
+  revealDirection="left"
+  revealDelay={70}
+  title={sectionTitle(
+    academicsSection?.title,
+    "Result And Academics"
+  )}
+  description={academicsSection?.description}
+  icon={GraduationCap}
+  color="#37a9df"
+  lightColor="#eef9fe"
+>
+  <DocumentTable
+    rows={
+      academicRows.length
+        ? academicRows
+        : resultAcademics.map((information) => ({
+            information,
+            link_label: "Click here to access",
+          }))
+    }
+    color="#37a9df"
+  />
+</DisclosureSection>
 
         {/* =====================================================
             D. STAFF
         ====================================================== */}
 
-        <DisclosureSection
-          number="D"
-          revealDirection="right"
-          revealDelay={70}
-          title={sectionTitle(staffSection?.title, "Staff (Teaching)")}
-          icon={UsersRound}
-          color="#20a98b"
-          lightColor="#edfaf7"
-        >
-          <StandardTable
-            headings={["S.No.", "Information", "Number / Strength", "Name and Qualifications"]}
-            rows={staffRows.length ? staffRows.map((row) => [row.information || "", row.number_strength || "", row.name_qualifications || row.details || ""]) : teachingStaff}
-            color="#20a98b"
-          />
-        </DisclosureSection>
+      <DisclosureSection
+  number="D"
+  revealDirection="right"
+  revealDelay={70}
+  title={sectionTitle(staffSection?.title, "Staff (Teaching)")}
+  description={staffSection?.description}
+  icon={UsersRound}
+  color="#20a98b"
+  lightColor="#edfaf7"
+>
+  <StandardTable
+    headings={[
+      "S.No.",
+      "Information",
+      "Number / Strength",
+      "Name and Qualifications",
+    ]}
+    rows={
+      staffRows.length
+        ? staffRows.map((row) => [
+            row.information || "",
+            row.number_strength || "",
+            row.name_qualifications || row.details || "",
+          ])
+        : teachingStaff
+    }
+    color="#20a98b"
+  />
+</DisclosureSection>
 
         {/* =====================================================
             E. INFRASTRUCTURE
         ====================================================== */}
 
-        <DisclosureSection
-          number="E"
-          revealDirection="left"
-          revealDelay={70}
-          title={sectionTitle(infrastructureSection?.title, "School Infrastructure")}
-          icon={Building2}
-          color="#ef6da3"
-          lightColor="#fff2f7"
-        >
+       <DisclosureSection
+  number="E"
+  revealDirection="left"
+  revealDelay={70}
+  title={sectionTitle(
+    infrastructureSection?.title,
+    "School Infrastructure"
+  )}
+  description={infrastructureSection?.description}
+  icon={Building2}
+  color="#ef6da3"
+  lightColor="#fff2f7"
+>
           <StandardTable
             headings={["S.No.", "Information", "Details"]}
             rows={infrastructureInformationRows.length ? infrastructureInformationRows.map((row) => [row.information || "", row.details || ""]) : infrastructure}
@@ -517,6 +559,7 @@ export function KidsDisclosurePage() {
 function DisclosureSection({
   number,
   title,
+  description,
   icon: Icon,
   color,
   lightColor,
@@ -526,6 +569,7 @@ function DisclosureSection({
 }: {
   number: string;
   title: string;
+  description?: string | null;
   icon: React.ElementType;
   color: string;
   lightColor: string;
@@ -533,58 +577,87 @@ function DisclosureSection({
   revealDirection?: "up" | "left" | "right" | "scale";
   revealDelay?: number;
 }) {
+  const descriptionText = plainText(description);
+
   return (
     <section className="container relative pb-12 sm:pb-16">
       <Reveal direction={revealDirection} delay={revealDelay}>
-      <div className="mx-auto max-w-[1180px]">
-        <div className="mb-5 flex items-center gap-4 sm:mb-7">
-          <div
-            className="relative grid size-14 shrink-0 place-items-center rounded-[18px]"
-            style={{
-              backgroundColor: lightColor,
-              color,
-            }}
-          >
-            <Icon size={24} strokeWidth={1.9} className="transition-transform duration-500 group-hover/section:-rotate-6 group-hover/section:scale-110" />
-
-            <span
-              className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full border-[3px] border-[#fffdf8] text-[9px] font-extrabold text-white"
-              style={{ backgroundColor: color }}
+        <div className="mx-auto max-w-[1180px]">
+          {/* SECTION HEADING */}
+          <div className="mb-5 flex items-center gap-4 sm:mb-7">
+            <div
+              className="relative grid size-14 shrink-0 place-items-center rounded-[18px]"
+              style={{
+                backgroundColor: lightColor,
+                color,
+              }}
             >
-              {number}
-            </span>
+              <Icon
+                size={24}
+                strokeWidth={1.9}
+                className="transition-transform duration-500 group-hover/section:-rotate-6 group-hover/section:scale-110"
+              />
+
+              <span
+                className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full border-[3px] border-[#fffdf8] text-[9px] font-extrabold text-white"
+                style={{ backgroundColor: color }}
+              >
+                {number}
+              </span>
+            </div>
+
+            <div>
+              <p
+                className="text-[9px] font-extrabold uppercase tracking-[.2em]"
+                style={{ color }}
+              >
+                Section {number}
+              </p>
+
+              <h2 className="mt-1 font-serif text-2xl font-bold text-[#34305c] sm:text-3xl">
+                {title}
+              </h2>
+            </div>
+
+            <div className="ml-auto hidden items-center gap-1.5 sm:flex">
+              <span
+                className="h-[3px] w-8 rounded-full"
+                style={{ backgroundColor: color }}
+              />
+              <span className="size-[5px] rounded-full bg-[#ef5f6c]" />
+              <span className="size-[5px] rounded-full bg-[#ffd34e]" />
+              <span className="size-[5px] rounded-full bg-[#37a9df]" />
+            </div>
           </div>
 
-          <div>
-            <p
-              className="text-[9px] font-extrabold uppercase tracking-[.2em]"
-              style={{ color }}
+          {/* TABLE CARD */}
+          <div className="group/section overflow-hidden rounded-[26px] border border-[#34305c]/[0.07] bg-white shadow-[0_22px_65px_-45px_rgba(52,48,92,.32)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_75px_-42px_rgba(52,48,92,.38)]">
+            <div className="kids-table-scroll overflow-x-auto">
+              {children}
+            </div>
+          </div>
+
+          {/* DYNAMIC DESCRIPTION / NOTE */}
+          {descriptionText && (
+            <div
+              className="mt-6 flex items-start gap-3 rounded-[18px] border px-5 py-4"
+              style={{
+                borderColor: `${color}26`,
+                backgroundColor: lightColor,
+              }}
             >
-              Section {number}
-            </p>
+              <div
+                className="mt-[9px] size-2 shrink-0 rounded-full"
+                style={{ backgroundColor: color }}
+              />
 
-            <h2 className="mt-1 font-serif text-2xl font-bold text-[#34305c] sm:text-3xl">
-              {title}
-            </h2>
-          </div>
-
-          <div className="ml-auto hidden items-center gap-1.5 sm:flex">
-            <span
-              className="h-[3px] w-8 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            <span className="size-[5px] rounded-full bg-[#ef5f6c]" />
-            <span className="size-[5px] rounded-full bg-[#ffd34e]" />
-            <span className="size-[5px] rounded-full bg-[#37a9df]" />
-          </div>
+              <p className="text-[13px] leading-6 text-[#666274]">
+                <strong className="text-[#34305c]">Note:</strong>{" "}
+                {descriptionText}
+              </p>
+            </div>
+          )}
         </div>
-
-        <div className="group/section overflow-hidden rounded-[26px] border border-[#34305c]/[0.07] bg-white shadow-[0_22px_65px_-45px_rgba(52,48,92,.32)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_75px_-42px_rgba(52,48,92,.38)]">
-<div className="kids-table-scroll overflow-x-auto">
-  {children}
-</div>
-        </div>
-      </div>
       </Reveal>
     </section>
   );

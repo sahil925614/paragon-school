@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PageBanner } from "../../../../components/PageBanner";
 import { schoolApi } from "../../api/schoolApi";
@@ -114,6 +114,18 @@ const houses: House[] = [
 ========================================================= */
 
 export function HouseActivitiesPage() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    const updateMobile = () => setIsMobile(mediaQuery.matches);
+
+    updateMobile();
+    mediaQuery.addEventListener("change", updateMobile);
+
+    return () => mediaQuery.removeEventListener("change", updateMobile);
+  }, []);
+
   const { data: housesPage } = useQuery({
     queryKey: ["school-page", "houses-activities"],
     queryFn: async () => {
@@ -874,17 +886,48 @@ export function HouseActivitiesPage() {
 
                 <div className="overflow-hidden rounded-b-[18px] bg-slate-100">
 
-                  <iframe
-                    src={plannerUrl}
-                    title={planner?.title || "School Monthly Planner"}
-                    className="
-                      h-[480px]
-                      w-full
-                      border-0
-                      sm:h-[580px]
-                      lg:h-[650px]
-                    "
-                  />
+                  {isMobile ? (
+                    <div className="bg-white p-3">
+                      <p className="mb-3 text-sm leading-6 text-slate-600">
+                        On mobile, open the planner in the browser PDF viewer to
+                        swipe through every page smoothly.
+                      </p>
+
+                      <a
+                        href={plannerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="
+                          inline-flex
+                          min-h-11
+                          items-center
+                          justify-center
+                          rounded-xl
+                          bg-navy
+                          px-5
+                          py-3
+                          text-sm
+                          font-semibold
+                          text-white
+                          transition
+                          hover:opacity-90
+                        "
+                      >
+                        Open Monthly Planner
+                      </a>
+                    </div>
+                  ) : (
+                    <iframe
+                      src={plannerUrl}
+                      title={planner?.title || "School Monthly Planner"}
+                      className="
+                        h-[580px]
+                        w-full
+                        border-0
+                        lg:h-[650px]
+                      "
+                    />
+                  )}
 
                 </div>
 

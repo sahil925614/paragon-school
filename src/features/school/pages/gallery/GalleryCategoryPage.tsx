@@ -237,12 +237,19 @@ export function GalleryCategoryPage() {
                       >
                         <img
                           src={photo}
+                          alt=""
+                          aria-hidden="true"
+                          loading="lazy"
+                          className="absolute inset-0 z-0 size-full scale-110 object-cover opacity-40 blur-xl transition duration-700 group-hover:scale-125"
+                        />
+                        <img
+                          src={photo}
                           alt={`${album.title} photograph ${photoIndex + 1}`}
                           loading={albumIndex === 0 && photoIndex < 2 ? "eager" : "lazy"}
-                          className="size-full object-cover transition duration-700 group-hover:scale-105"
+                          className="relative z-10 size-full object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,.12)] transition duration-700 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-navy/45 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
-                        <span className="absolute bottom-4 right-4 grid size-9 translate-y-2 place-items-center rounded-full bg-white text-navy opacity-0 shadow-lg transition group-hover:translate-y-0 group-hover:opacity-100">
+                        <div className="absolute inset-0 z-20 bg-gradient-to-t from-navy/45 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
+                        <span className="absolute bottom-4 right-4 z-30 grid size-9 translate-y-2 place-items-center rounded-full bg-white text-navy opacity-0 shadow-lg transition group-hover:translate-y-0 group-hover:opacity-100">
                           <ZoomIn size={16} />
                         </span>
                       </button>

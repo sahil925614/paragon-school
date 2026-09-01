@@ -21,7 +21,7 @@ import { applyPageSeo, type PageSeo } from "../../utils/pageSeo";
 
 type Flashback = {
   title: string;
-  copy: string[];
+  description: string;
   images?: string[];
 };
 
@@ -103,92 +103,10 @@ function plainText(html?: string | null) {
   return repairText(text);
 }
 
-function htmlParagraphs(html?: string | null) {
-  if (!html) return [];
-
-  const paragraphs = Array.from(
-    html.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi),
-  )
-    .map((match) => plainText(match[1]))
-    .filter(Boolean);
-
-  return paragraphs.length
-    ? paragraphs
-    : [plainText(html)].filter(Boolean);
+function repairHtml(html?: string | null) {
+  if (!html) return "";
+  return repairText(html).trim();
 }
-
-/* =========================================================
-   FALLBACK DATA
-========================================================= */
-
-const flashbacks: Flashback[] = [
-  {
-    title:
-      "Paragon at the School Leaders’ Conference – South Asia 2025",
-    copy: [
-      "Paragon School was proudly represented by our Principal, Ms. Jasmeet Kaur, at the School Leaders’ Conference (SLK 2025), held from 19th to 22nd September 2025 in Colombo, Sri Lanka. The conference was organised by the Goethe-Institut and brought together school leaders from across South Asia.",
-      "With the theme “From Classroom to Career – German for a Competitive Edge,” the conference welcomed nearly 100 principals from Nepal, Bhutan, Bangladesh, Pakistan, Sri Lanka, and India. It provided a valuable platform to exchange ideas, share best practices, and explore the role of German language learning in enhancing students’ academic and professional opportunities.",
-    ],
-  },
-
-  {
-    title: "CBSE Sahodaya Conference 2025, Dubai",
-    copy: [
-      "The School Director, Ms. Fancy Shergill, along with the Principal, Mrs. Jasmeet Kaur, represented the school at the 1st International and 31st Annual CBSE Sahodaya Conference held on 4th–5th November 2025 at Dubai, UAE. The conference focused on NEP 2020 implementation, global collaboration, innovative pedagogy, and holistic education.",
-    ],
-  },
-
-  {
-    title: "Chemie in Aktion– Kathmandu, Nepal",
-    copy: [
-      "Akshpreet Kaur (Class 12) and Simrat Khanna (Class 11) proudly represented Paragon Sr. Sec. School at the four-day international youth science camp Chemie in Aktion, organized by the Goethe-Institute / Max Mueller Bhavan New Delhi. They were selected for this opportunity based on their excellent performance in the FIT 2 German exam.",
-      "Held at the science Club Himalaya Hotel, the camp united students from India, Nepal, Bangladesh, and Pakistan for a journey of science and cultural exchange.",
-    ],
-  },
-
-  {
-    title: "Blood Donation Camp",
-    copy: [
-      "Paragon Senior Secondary School, Sector 71, Mohali organized a Blood Donation Camp on 24th July 2025 in the loving memory of late S. Iqbal Singh Shergill. Initiated this year, the camp received an overwhelming response with the support of Sohna Hospital, where over 100 donors participated. In honor of his legacy of compassion and service, the school has decided to organize this camp as an annual event from now onwards.",
-    ],
-  },
-
-  {
-    title: "Global Youth Film Festival 2025–26",
-    copy: [
-      "Our school proudly represented at the Global Youth Film Festival 2025–26 by Supremacy Talents, where our talented students created an inspiring film in the category “Why Respect and Preserve Public Places.” We are honoured to secure the prestigious title of “Future Filmmaker School of the Year”, along with the Best Cinematographer Award awarded to Teyasbir (Class XII – Commerce) for outstanding visual storytelling.",
-    ],
-  },
-
-  {
-    title: "Inter House Poster Making Competition",
-    copy: [
-      "Inter house poster making competition for students from classes VI to VIII, themed “My Vision for India - Viksit Bharat 2047” was organised in the school. The event witnessed enthusiastic participation from all four houses. The competition not only showcased the artistic talent of the students but also ignited their aspirations for a progressive India.",
-    ],
-  },
-
-  {
-    title: "Film Festival",
-    copy: [
-      "On 21st December, our school had the honor of being one of only 11 institutions selected out of 200 schools to participate in the prestigious Global Youth Film Festival held at the Government Museum and Art Gallery, Sector 10, Chandigarh. The festival showcased a short movie contest under themes like sustainability, poverty, and the right to education.",
-      "With immense pride, we are delighted to announce that our school won the Best Cinematography Award!",
-    ],
-  },
-
-  {
-    title: "Blaze to Chase 2024",
-    copy: [
-      "We were thrilled to host ‘Blaze to Chase-2024’ at Paragon Senior Secondary School, Mohali, where entrepreneurial energy was at an all-time high! Students from 15 tricity schools, ranging from Class VI to XI, came together to showcase their innovative business ideas, aimed at igniting the future of Entrepreneurship.",
-    ],
-  },
-
-  {
-    title: "Class Show",
-    copy: [
-      "Our KG 2 students took an exciting journey across the globe with their class show themed “Around the World.” The young explorers showcased their vibrant dances representing different countries, celebrating the rich cultures and traditions of our world.",
-    ],
-  },
-];
 
 /* =========================================================
    PAGE
@@ -243,15 +161,10 @@ export function FlashbacksPage() {
         title: repairText(
           card.title || `Flashback ${index + 1}`,
         ),
-        copy: htmlParagraphs(card.description),
+        description: repairHtml(card.description),
         images,
       };
     });
-
-  const displayedFlashbacks =
-    apiFlashbacks.length
-      ? apiFlashbacks
-      : flashbacks;
 
   useEffect(() => {
     applyPageSeo(flashbacksPage?.seo);
@@ -341,7 +254,7 @@ export function FlashbacksPage() {
             />
 
             <div className="space-y-10 sm:space-y-12 lg:space-y-14">
-              {displayedFlashbacks.map(
+              {apiFlashbacks.map(
                 (flashback, index) => (
                   <FlashbackStory
                     key={`${flashback.title}-${index}`}
@@ -481,27 +394,37 @@ function FlashbackStory({
 
           <div className="mt-4 h-[2px] w-9 bg-[#c72c3b]" />
 
-          <div
-            className="
-              mt-5
-              max-w-5xl
-              space-y-4
-              text-[14px]
-              leading-[1.85]
-              text-slate-600
-              sm:text-[15px]
-            "
-          >
-            {flashback.copy.map(
-              (paragraph, paragraphIndex) => (
-                <p
-                  key={`${paragraph}-${paragraphIndex}`}
-                >
-                  {paragraph}
-                </p>
-              ),
-            )}
-          </div>
+          {flashback.description && (
+            <div
+              className="
+                mt-5
+                max-w-5xl
+                text-[14px]
+                leading-[1.85]
+                text-slate-600
+                sm:text-[15px]
+                [&_p]:mb-4
+                [&_p:last-child]:mb-0
+                [&_strong]:font-bold
+                [&_b]:font-bold
+                [&_em]:italic
+                [&_i]:italic
+                [&_u]:underline
+                [&_a]:text-[#c72c3b]
+                [&_a]:underline
+                [&_ul]:my-4
+                [&_ul]:list-disc
+                [&_ul]:pl-6
+                [&_ol]:my-4
+                [&_ol]:list-decimal
+                [&_ol]:pl-6
+                [&_li]:mb-1
+              "
+              dangerouslySetInnerHTML={{
+                __html: flashback.description,
+              }}
+            />
+          )}
         </div>
       </div>
     </article>

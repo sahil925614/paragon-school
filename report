@@ -1,0 +1,538 @@
+project - paragon
+
+6-8-26
+- Set up and organized the frontend project structure.
+- Designed and implemented the responsive website header.
+- Designed and implemented the website footer.
+- Fixed the Paragon School logo rendering issue.
+- Added separate entry choices for Paragon Senior Secondary School and Paragon Kids.
+
+7-8-26
+- Designed and implemented the Paragon School homepage.
+- Updated the navbar with responsive dropdown menus and active-page highlighting.
+- Added automatic scroll-to-top functionality during page navigation.
+- Added separate routes and page files for all navbar and dropdown pages.
+- Created a reusable premium layout for the About section pages.
+- Fixed shared banner animations across internal pages.
+- Organized pages for independent API integration, images, and content management.
+
+12-8-26
+- Created the complete Paragon Kids website page structure and routes.
+- Designed a responsive Kids header with navigation menus, an About dropdown, and a creative announcement bar.
+- Created separate pages for Mission and Vision, Principal’s Desk, History and Legacy, Curriculum, Founder, Infrastructure, President’s Desk, About Director, Admission, Activities, Gallery, Contact, and Mandatory Disclosure.
+- Designed the Kids Gallery with Festivals, Annual Sports Meet, Class Activities, and Excursions categories.
+- Added separate gallery pages for each Kids Gallery category.
+- Created and integrated a responsive Kids footer containing quick links, gallery images, social links, and contact information.
+- Added a shared smooth scroll-to-top button across both the School and Kids sections.
+
+13-8-26
+Created separate inner pages for the Beyond the Classroom categories.
+Created multiple Trips and Tours sections on the Excursion page.
+Fixed the Awards Slider image popup functionality on desktop.
+Redesigned Paragon Kids website pages with a more creative, child-friendly, and responsive UI.
+Added engaging **scroll-based animations, transitions, and interactive effects** across the Kids pages.
+Improved the Kids page banners with playful text animations and visual elements.
+Redesigned and enhanced the Paragon Kids Gallery and individual gallery category pages with a creative photo presentation and responsive layout.
+Improved the Paragon Kids homepage sections and footer to maintain a consistent Kids theme throughout the website.
+Continued redesigning the pending Senior School pages, including NDA, Scouts & Guides, Excursion, NCC, NSS, Red Cross Unit, and German Language Teaching.
+Fixed minor UI and layout issues across pages to ensure smoother and more consistent website behaviour.
+
+14-8-26
+Created KidsMagicCursor 
+ Redesigned the NDA page with an improved content structure and professional presentation.
+ Worked on the main website entry/selection page for Senior School and Paragon Kids, improving its overall visual presentation and creating   clearer entry options for both sections.
+ Redesigned the Scouts & Guides page with an enhanced image and content layout.
+ Redesigned the NCC page, covering both the Army Wing and Air Wing sections.
+ Added scroll-based reveal animations, hover effects, transitions, and interactive elements to the Admission page.
+ Added a seesaw-style tilting animation to the “What Sets Us Apart?” heading.
+ Added admission-themed decorative illustrations with subtle floating animations to utilise empty spaces effectively.
+ Improved the National Service Scheme (NSS) page, including proper page headings, activity presentation, and image layout.
+
+ 17-8-26
+- Worked on the footer of senior secondary school and added btn urls
+- Added thumbnails functionality and youtube urls in the homepage activity section
+
+18-8-26
+- Integrated api in contact & homepage and maked dynamic 
+- Fixed the repeating card issue in the kids curricullum page
+- Added functionality for the double favicon 
+- Redesigned the infrastucture page for the kids feature
+- Improved and added go to paragon school btn in the kids announcement bar
+- Changed the content order of all the about inner pages and added keyframes animation
+- Worked on the kids activity page and pdf view/download functionality
+- Created seo setting component for all the pages
+
+19-8-26
+- Added expandable “See More / See Less” functionality to long academic cards.
+- Improved the Admission Registration layout and removed excessive empty space.
+- Redesigned the School Leaving Certificate document cards with PDF view/download functionality.
+- Fixed HTML tags displaying in the Flashbacks page heading.
+- Made the main Gallery page dynamic using backend categories.
+- Integrated the footer API for dynamic content, links, gallery images, contact details, and social media.
+- Added dynamic address, email, and phone details to the announcement bar.
+- Integrated Api's in Infrastruture ,admission, pagebook, listsofchool, leaving certificate, school-uniform, flashbacks, clubactivities, houseactivities pages
+
+20-8-26
+- Integrated APIs across the Paragon Kids pages while preserving the existing designs and animations.
+- Made the Activities, Admission, Mission & Vision, History & Legacy, Founder, President’s Desk, Principal’s Desk, Director’s Message, Curriculum, and Infrastructure pages dynamic.
+- Integrated the Paragon Kids Home Page API, including sliders, news, testimonials, welcome content, About section, and CTA.
+- Fixed rich-text HTML rendering in the Latest News/Events section.
+- Preserved ordered-list items and made embedded news links clickable.
+- Integrated the Paragon Kids Footer API for dynamic logo, About content, quick links, gallery images, contact details, social media links, colors, and copyright text.
+- Added fallback content to prevent empty sections when API data is unavailable.
+ 
+ 21-8-26
+- Integrated api in the Mandatory Disclosure page 
+- Maked contact page content dynamic and enquiry form and map is dynamic
+- Integrated api's in all section of the homepage
+- Added link in the footer and maked complete footer dynamic
+- Designed and integrated api in the school-uniform page 
+- Currently working on the, announcement bar gallery and his category pages
+
+24-8-26
+- Integrated the Paragon Kids Gallery API.
+- Made gallery category pages dynamic using category slugs.
+- Made the Kids announcement bar dynamic using footer contact information.
+- Redesigned the Recent Results section.
+- Added an image-viewing popup with previous/next navigation.
+- Redesigned the Testimonials and Why Choose Us section.
+- Added automatic sliding to the Recent Activities carousel.
+- Redesigned the E-Year Book section.
+
+25-8-26
+- Uploaded all the pdf documents in mandatory-disclosure-information page 
+- Worked on the homepage and School Monthly Planner
+- Uploaded and Tested all the gallery category images
+- Integrated api's and make all the pages seo settings data dynamic
+- Redesigned the complete flashback page 
+- Added all the School Leaving Certificate for the senior school and kids feature
+- Deployed the project on the vercel
+- Maked responsive the senior school pages for all the various screen sizes
+- Reduced heavy gradients that were hiding the kids image.
+- Preserved the existing colors, content, routes, and desktop layout.
+ 
+ 26-8-26
+ - Made the School Selector page dynamic using the Welcome API.
+- Improved the School Selector mobile layout and fixed duplicate student images.
+- Made the “What Sets Us Apart” cards dynamic on the Paragon Kids homepage.
+- Added outside-click closing functionality to the Paragon Kids About dropdown.
+- Redesigned Kids gallery category pages to display each album in a separate, clearly titled section.
+- Added an image zoom modal with previous/next navigation and keyboard controls.
+- Maked all the pages banner dynamic
+- Redesigned complete school uniform page 
+- Created slider for the recent results in the homepage
+- Implemented progress bar for the e book
+- Added All the Awards data and kids homepage slider data
+
+27-8-26
+- Maked dynamic title and description of all recent result section
+- Integrated api and redesigned germanlaunguage page
+- Integrated api and redesigned redcrossunit page
+- Integrated api and redesigned nss page
+- Integrated api and redesigned ncc page
+- Integrated api and redesigned Excursion page
+- Downloaded and uploaded all the content, images and data in all of theses pages
+- Worked on the kids about internal pages and updated all the content
+
+28-8-26
+- Download and reupload compressed ebook pdf file
+- Maked dynamic Call To Action Section
+- Redesigned and uploaded category images of Achievements (Teachers & Students) Page
+- Redesigned and uploaded category images of annual function page
+- Redesigned and uploaded category images ofclass activities page
+- Redesigned and uploaded category images ofexhibition page
+- Redesigned and uploaded category images of field trips page
+
+31-8-26
+- Added invalid url redirection to homepage for both school and kids
+- Redesigned and uploaded category images of Inter-house-activities Page
+- go to paragon kids btn added for the mobile view
+
+
+
+project - evrydae
+- Integrated Shopify discount coupons with the cart and checkout.
+- Added coupon validation and minimum-order requirement handling.
+- Restricted customers from using the same coupon repeatedly.
+- Disabled unavailable product sizes based on Shopify inventory.
+- Added “Out of Stock” badges and disabled Add to Cart for unavailable products.
+- Implemented Cash on Delivery support with Razor pay Magic Checkout.
+- Configured and enabled the Razor pay webhook for order updates.
+- Configured COD shipping rules in the Razorpay dashboard.
+- Investigated the Razor pay COD eligibility and shipping synchronization issue.
+- Raised Razor pay support ticket `20203968` for the account-level COD issue.
+- Verified that cancelled Shopify checkout sessions appear under Abandoned Checkouts.
+- Designed and implemented a fully responsive payment Thank You page.
+- Added a View Invoice option to the Thank You page.
+- Configured the `PREPAID10` coupon to apply automatically to cart products.
+- Added functionality to replace the default coupon with another valid coupon.
+- Restored the default `PREPAID10` coupon when a custom coupon is removed.
+- Synchronized invoice numbers with Shopify order numbers.
+- MSOFC SCRIPT ADDED
+- Banner tagline also updated as per the client requirements
+
+Fixed the judgeme review functionality
+- Integrated Shopify’s Razorpay payment provider with support for cards, UPI, net banking, and wallets.
+- Enabled and verified Cash on Delivery alongside Razorpay in Shopify Checkout.
+- Removed duplicate customer information and coupon fields from the cart page and cart sidebar.
+- Shifted customer contact, address, shipping, and payment collection completely to Shopify Checkout.
+- Added separate “Pay Online & Save 10%” and “Cash on Delivery” checkout paths.
+- Fixed delayed and missing product images on collection pages.
+- Improved primary product-image loading and fallback handling.
+- Updated the announcement bar with a continuous news-headline animation.
+- Replaced mobile banner image and fixed the borders
+- Updated the product gallery scroll mandontary first and then the page
+- Autoplay added for the discover your look section
+- Currently working on shiprocket, scala discount plugin for prepaid orders, and dollar showing in the order details
+
+Connected the React storefront with the new Shopify Headless Storefront API.
+Updated the Shopify Storefront API token and required storefront/shop IDs.
+Configured the required API permissions for products, inventory, checkout, content, and metaobjects.
+Integrated Shopify analytics tracking with the React storefront.
+Investigated the difference between Shopify Analytics and Microsoft Clarity session data.
+Reintegrated Razorpay Magic Checkout with the React storefront.
+Added separate “Pay Online & Save 10%” and “Cash on Delivery” checkout buttons.
+Configured prepaid orders to automatically apply the PREPAID10 discount.
+Configured COD orders to use the full order amount without the prepaid discount.
+
+- Implemented the Shopify Draft Order workflow for new Razorpay Magic Checkout orders.
+- Added the required Shopify Draft Order API permissions and installed the updated custom app.
+- Configured Shopify client credentials securely in the Vercel environment.
+- Added payment and fulfillment status tags for easier order tracking in Shopify.
+- Activated the Shiprocket Engage RTO Suite for WhatsApp order confirmation, address verification, tracking updates, and RTO management.
+- Redesigned the order invoice with a premium branded layout and improved payment, customer, and item details.
+- Created and published the `PREPAID10` coupon directly in Razorpay Magic Checkout.
+- Configured the coupon to provide an automatic 10% discount on prepaid orders.
+- Restricted the prepaid coupon from Cash on Delivery transactions.
+
+- Implemented Shopify analytics for page views, product views, collection views, searches, and add-to-cart actions.
+- Standardized spacing between all homepage sections across mobile, tablet, and desktop screen sizes.
+- Investigated Razorpay Magic Checkout abandonment tracking and confirmed that abandoned checkouts are synchronized as Shopify Draft Orders.
+- Removed the Curated Lines text, product film text and Faq section page from the website and in the footer
+- Updated the announcement bar bullet points
+- Removed the msscript from the header and move in the main.jsx file
+
+- Coordinated with Ship rocket support and enabled Partial COD for the Ship rocket account.
+- Configured Razor pay Magic Checkout Partial COD settings.
+- Set the Partial COD advance payment to 10%.
+- Enabled Partial COD for all buyer risk categories.
+- Tested the checkout flow and confirmed that customers can pay 10% online and the remaining amount through Cash on Delivery.
+- New Category Added in the clothing menu
+- Showed best sellers section instead of you may not like section
+- Changed the banner also and fixed the background colours according to the image
+- Updated the discover your look section
+- Showed the error if the coupons is used or not usable
+
+- Integrated Meta Pixel ID 868559799013242 across the React frontend.
+- Added Meta Pixel tracking for PageView, ViewContent, and AddToCart events across the React frontend
+- Fixed duplicate ViewContent events caused by repeated product rendering.
+- Tested Meta Pixel events locally using Meta Ads Data Advisor and browser network requests.
+- Fixed Product Details bullet-point alignment for both desktop and mobile views.
+- Updated the new banner and removed all the content above from the banner.
+
+- Replaced banner images for the mobile and iPad view as per the client requirement
+- Fixed the image aspect ratio for all the various screen sizes
+
+- Raised ticket for abondoned checkout orders, for now we can see the cancel orders in the shopify dashboard / orders/ drafts
+- Implemented a Prepaid and Cash on Delivery selection before opening Razorpay Magic Checkout.
+- Added automatic coupon handling for `EVRFRST` and `EVRPRE` based on customer eligibility and previous order history.
+- Improved the cart sidebar design for laptop and medium screen sizes.
+- Added autoslider to show all the product sizes for the mobile view
+- Removed all the old coupons code functionality from everywhere
+- Removed the partial cod option
+- Updated the new announcement tagline and deleted the old one
+
+- Fixed the issue where a Tank Top product was incorrectly appearing in the T-Shirts collection.
+- Updated category pages to display only products assigned to their respective Shopify collections.
+- Audited product counts across all clothing and footwear categories.
+- Increased the Shopify collection product limit so all 102 products appear in the Shoes category.
+- Generated a support ticket with Razorpay Customer Support regarding abandoned Magic Checkout orders and their visibility in Shopify’s Abandoned Checkouts section.
+
+- Investigated the mandatory email prompt displayed by Razorpay Magic Checkout and raised a support request for a phone-only checkout flow.
+- Explored Shiprocket Engage 360 for WhatsApp abandoned-checkout recovery.
+- Evaluated custom WhatsApp abandoned-checkout automation using Razorpay events and the WhatsApp Business Cloud API.
+- Implemented the Meta Pixel `InitiateCheckout` event for both Add to Cart and Buy Now checkout flows.
+- Fixed the Buy Now button to open Razorpay Magic Checkout directly for the selected product.
+- Added safeguards to prevent duplicate checkout actions and duplicate `InitiateCheckout` events.
+- Verified the updated checkout implementation with a successful production build.
+
+- Identified and fixed that prepaid discounts were incorrectly being applied to COD orders.
+- Added safeguards to prevent prepaid coupons from applying to COD transactions.
+- Updated Shopify order creation to display the exact Razorpay discount amount.
+- Updated the email flow so customers receive only Shopify’s confirmation email, while the custom email is sent only to the administrator.
+- Configured Razorpay coupons to restrict their use with Cash on Delivery.
+- Investigated the incorrect 18% GST calculation and updated the Shopify tax configuration requirements to 5%.
+- Reviewed the Razorpay abandoned-checkout implementation, webhook configuration, and Shopify Draft Order synchronization.
+
+- Homebanner image is replaced as per the client requirement
+- Chat with the razorpay customer support magic checkout team regarding email and abandoned 
+
+project - Monty Real Gems
+- Implemented country-based product visibility for Indian and international customers.
+- Added the per-carat price below the product name in the mobile product action bar.
+- Added an “Apply Filters” button to mobile filter modals across all product and category pages.
+- Fixed the mobile Filter/Sort action bar overlapping the showroom and footer sections.
+- Tested the implemented changes and verified the production build successfully.
+Fixed the header overlapping issue for all the various screen sizes
+
+project - Anmol sewa foundation
+Blog Management and Editor
+1. Reviewed the blog creation form and existing rich-text editor.
+2. Fixed HTML tags appearing as plain text on blog detail pages.
+3. Added support for rendering pasted HTML correctly on the frontend.
+4. Added HTML Source and Visual Editor modes.
+5. Preserved inline CSS styles such as text colors, font sizes, spacing, and typography.
+6. Added a blog preview option before publishing.
+7. Improved existing blog editing and content preview behavior.
+8. Added image alt-text fields for blog images.
+9. Added optional image captions.
+10. Added the option to select a featured/social-sharing image.
+11. Investigated and fixed blog image alt text not persisting after saving.
+12. Added/handled blog schema markup using JSON-LD.
+13. Added BlogPosting structured data on blog detail pages.
+14. Improved featured-image selection and SEO image fallback.
+Blog SEO Fields
+15. Added a Canonical URL field to the Add/Edit Blog form.
+16. Added automatic canonical generation using the blog slug when the field is empty.
+17. Added SEO Meta Title support.
+18. Added SEO Meta Description support.
+19. Added SEO Meta Keywords support.
+20. Connected saved blog SEO values to frontend blog pages.
+21. Fixed blog meta descriptions and keywords falling back to homepage values.
+22. Added separate blog-level SEO data handling.
+23. Ensured canonical URLs use the production domain.
+24. Ensured query strings are not included in canonical URLs.
+25. Added canonical URL support to blog schema mainEntityOfPage.
+26. Corrected Open Graph URL handling for blog pages.
+27. Corrected blog image alt attributes on the frontend.
+Canonical URL Fixes
+28. Fixed homepage canonical handling.
+29. Fixed the /our-blogs listing-page canonical.
+30. Fixed individual blog canonical URLs.
+31. Fixed program detail-page canonical URLs.
+32. Fixed main navigation-page canonical URLs.
+33. Fixed canonical URLs for About Us pages.
+34. Fixed the Journey page canonical.
+35. Fixed canonical URLs for Reports, Awards, Programs, Impact, Gallery, Testimonials, Media Archives, Contact, and Donate pages.
+36. Connected page canonicals to values saved in Admin SEO Settings.
+37. Added fallback canonical paths for pages without saved values.
+38. Fixed incorrect homepage canonical appearing on inner pages.
+39. Improved canonical handling inside the shared Seo.jsx component.
+40. Ensured only absolute production URLs are generated.
+41. Added canonical information to prerendered page source.
+42. Verified canonical tags using browser Elements and View Page Source.
+43. Investigated newly published blogs showing homepage canonical in View Source.
+44. Identified that newly published blog source code requires dynamic server rendering or a new prerendered build.
+Prerendering and Page Source SEO
+45. Added and improved the React prerender process.
+46. Added static routes to the prerender configuration.
+47. Added dynamic blog routes to the prerender process.
+48. Read routes from the generated sitemap.
+49. Prevented automatic crawling of unwanted or malformed routes.
+50. Ensured main navigation pages are prerendered.
+51. Ensured individual blog pages are prerendered.
+52. Ensured program inner pages are prerendered.
+53. Fixed canonical tags appearing correctly in browser Elements but incorrectly in View Source.
+54. Verified production builds across approximately 46–47 routes.
+55. Resolved temporary prerender server-port conflicts.
+56. Improved prerender ordering for problematic pages such as Contact.
+57. Prevented Contact-page integrations from interfering with prerendering.
+58. Confirmed source-code SEO values after production builds.
+Sitemap Work
+59. Created an automatic sitemap generation script.
+60. Connected sitemap generation to npm run build.
+61. Retrieved live blogs from the blog API during sitemap generation.
+62. Added blog URLs automatically to sitemap.xml during a build.
+63. Added static website routes to the sitemap.
+64. Added program-detail routes to the sitemap.
+65. Added blog lastmod values using database timestamps.
+66. Added change frequency and priority values.
+67. Prevented duplicate sitemap URLs.
+68. Added sitemap generation as the prebuild command.
+69. Connected the prerender script to sitemap routes.
+70. Verified the sitemap with 18–19 blog URLs during different builds.
+71. Confirmed that blogs added after deployment do not enter a static sitemap until another build.
+72. Investigated a live MERN/AWS sitemap solution.
+73. Confirmed the correct future solution is a dynamic Express sitemap endpoint with Nginx routing.
+Open Graph and Social Sharing SEO
+74. Added or corrected og:title.
+75. Added og:site_name.
+76. Added og:url.
+77. Added og:description.
+78. Added og:type.
+79. Added og:image.
+80. Added homepage-specific Open Graph overrides.
+81. Used the exact homepage Open Graph values supplied by the SEO team.
+82. Added the supplied Cloudinary social-sharing image.
+83. Preserved page-specific Open Graph information for inner pages.
+84. Added support for separate Open Graph title, description, image, and URL values.
+85. Reviewed duplicate static and dynamic Open Graph tags.
+86. Recommended keeping locale and image-dimension tags static.
+87. Recommended generating og:type and og:site_name dynamically.
+88. Fixed duplicate Twitter title metadata.
+89. Verified all six homepage Open Graph values in the generated HTML source.
+General Page SEO
+90. Corrected page titles coming from Admin SEO Settings.
+91. Corrected page descriptions.
+92. Corrected page keywords.
+93. Fixed the Blog listing page requesting the wrong SEO record.
+94. Changed the Blog listing page to use the backend blog SEO identifier.
+95. Prevented blog-card headings and content tags from polluting page-level SEO.
+96. Reviewed heading counts reported by SEO browser extensions.
+97. Confirmed that blog card headings can increase H2/H3 counts on listing pages.
+98. Distinguished page-level metadata from content-level HTML tags.
+99. Improved the shared SEO component’s fallback behavior.
+100. Added structured-data rendering support to the SEO component.
+
+
+
+
+
+
+
+
+# August 2026 – Monthly Development Report
+
+During August 2026, development, integration, optimization, and maintenance activities were carried out across **four active projects: Paragon School, EVRYDAE, Monty Real Gems, and Anmol Sewa Foundation**. The work covered frontend development, API integrations, Shopify and Razorpay functionality, SEO improvements, responsive UI enhancements, e-commerce checkout workflows, and website performance/functionality improvements.
+
+## 1. Paragon School
+
+August involved extensive development across both the **Paragon Senior Secondary School** and **Paragon Kids** websites. The initial frontend structure, responsive header/footer, homepage, navigation system, internal routes, and reusable layouts were established early in the month. 
+
+### Major Work Completed
+
+* Developed and organized the complete frontend architecture.
+* Designed responsive headers, footers, navigation menus, dropdowns, and entry selection for Senior School and Paragon Kids.
+* Created and redesigned major Senior School and Kids pages.
+* Developed dedicated pages for Mission & Vision, Principal's Desk, History & Legacy, Curriculum, Founder, Infrastructure, Admission, Activities, Gallery, Contact, Mandatory Disclosure, and other sections.
+* Redesigned NDA, NCC, NSS, Scouts & Guides, Red Cross Unit, Excursion, German Language and related activity pages.
+* Added animations, transitions, interactive elements, gallery effects, image modals and navigation.
+* Integrated APIs across the Senior School and Kids websites, converting static content into dynamically managed content.
+* Made homepage sliders, news, testimonials, gallery, contact information, footer, announcement bar, infrastructure, admission and other sections dynamic. 
+* Added PDF viewing/downloading functionality for school documents and School Leaving Certificates.
+* Added SEO settings across website pages.
+* Improved gallery category pages and implemented image zoom with previous/next navigation.
+* Uploaded Mandatory Disclosure documents, gallery images, School Leaving Certificates, awards, homepage slider data and other website content.
+* Improved responsiveness across different screen sizes.
+* Deployed the project on Vercel.
+* Added invalid URL redirection and completed additional mobile navigation improvements at month-end. 
+
+**August Status:** Major frontend development, dynamic API integration, content migration and responsive optimization completed.
+
+---
+
+# 2. EVRYDAE
+
+EVRYDAE received extensive e-commerce development during August, particularly around **Shopify, Razorpay Magic Checkout, Shiprocket, checkout workflows, discounts, analytics, Meta Pixel and frontend improvements**.
+
+### Shopify & Product Functionality
+
+* Integrated Shopify discount coupons with cart and checkout.
+* Added coupon validation, minimum-order rules and repeat-use restrictions.
+* Added inventory-based size availability and Out of Stock handling.
+* Fixed Shopify collection/category product-assignment issues.
+* Audited category product counts and increased collection limits where required.
+* Connected the React storefront to the new **Shopify Headless Storefront API** and configured required permissions. 
+* Implemented Shopify Draft Order workflows for Razorpay Magic Checkout orders.
+* Added payment and fulfillment status tags.
+* Improved Shopify order discount synchronization.
+
+### Razorpay Magic Checkout
+
+* Implemented Cash on Delivery support.
+* Configured Razorpay webhooks and COD shipping rules.
+* Added separate **Pay Online & Save 10%** and **Cash on Delivery** checkout paths.
+* Configured automatic prepaid discounts.
+* Created and published the `PREPAID10` Razorpay coupon and restricted it from COD orders.
+* Implemented and tested Partial COD with a 10% advance before subsequently removing the Partial COD option as requirements evolved. 
+* Added prepaid/COD selection before opening Magic Checkout.
+* Added customer eligibility-based coupon handling.
+* Fixed prepaid discounts incorrectly applying to COD transactions.
+* Investigated the mandatory email requirement in Magic Checkout.
+* Raised Razorpay support requests concerning the email field and abandoned checkout tracking.
+* Investigated Razorpay abandoned checkout synchronization and Shopify Draft Orders. 
+
+### Shiprocket & WhatsApp
+
+* Activated the **Shiprocket Engage RTO Suite** for order confirmation, address verification, shipment tracking and RTO management.
+* Coordinated with Shiprocket regarding Partial COD.
+* Investigated **Shiprocket Engage 360 abandoned-checkout WhatsApp recovery**.
+* Evaluated a custom WhatsApp recovery workflow using Razorpay events and WhatsApp Business Cloud API. 
+
+### Analytics & Marketing Tracking
+
+* Integrated Shopify analytics for product, collection, search and cart interactions.
+* Integrated **Meta Pixel** across the React frontend.
+* Added PageView, ViewContent, AddToCart and InitiateCheckout tracking.
+* Fixed duplicate Meta Pixel events.
+* Tested tracking through Meta diagnostic tools and network requests. 
+
+### UI/UX Improvements
+
+Multiple improvements were completed across banners, product galleries, collection pages, cart sidebar, announcement bar, responsive layouts, product imagery, autosliders and homepage sections.
+
+**August Status:** Major Shopify/Razorpay integration completed; abandoned-checkout and Magic Checkout support items remained under coordination with Razorpay/Shiprocket at month-end.
+
+---
+
+# 3. Monty Real Gems
+
+August work for Monty Real Gems focused primarily on **international product visibility, mobile shopping usability and responsive UI fixes**.
+
+### Work Completed
+
+* Implemented country-based product visibility for Indian and international customers.
+* Added per-carat pricing beneath product names in the mobile product action bar.
+* Added an **Apply Filters** button to mobile filter modals across product and category pages.
+* Fixed mobile Filter/Sort controls overlapping showroom and footer sections.
+* Fixed header overlap issues across different screen sizes.
+* Tested all implemented changes and successfully verified the production build. 
+
+**August Status:** Requested functionality and responsive fixes completed and production build verified.
+
+---
+
+# 4. Anmol Sewa Foundation
+
+August development for Anmol Sewa Foundation was heavily focused on **technical SEO, blog management, canonical URLs, structured data, prerendering, sitemap automation and Open Graph optimization**.
+
+### Blog Management & Editor
+
+* Improved the blog creation/editing system.
+* Fixed raw HTML appearing on blog detail pages.
+* Added HTML Source and Visual Editor modes.
+* Preserved inline formatting and CSS.
+* Added blog previews.
+* Added image alt text and captions.
+* Added featured/social-sharing image support.
+* Added `BlogPosting` JSON-LD structured data. 
+
+### Blog SEO
+
+Added support for:
+
+* SEO Meta Titles
+* Meta Descriptions
+* Meta Keywords
+* Canonical URLs
+* Blog-specific SEO information
+* Production-domain canonical generation
+* Open Graph URLs
+* Correct frontend image alt attributes
+
+Canonical URL handling was corrected across the homepage, blog listing/detail pages, programs, About pages, Journey, Reports, Awards, Impact, Gallery, Testimonials, Media, Contact, Donate and other pages. 
+
+
+
+### Open Graph & Social Sharing
+
+* Corrected `og:title`, `og:site_name`, `og:url`, `og:description`, `og:type` and `og:image`.
+* Added homepage-specific Open Graph information.
+* Added social-sharing imagery.
+* Preserved page-specific Open Graph information.
+* Fixed duplicate Twitter metadata.
+* Verified Open Graph values in generated HTML. 
+
+                               |
+
+

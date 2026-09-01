@@ -16,7 +16,6 @@ import { PageBanner } from "../../../components/PageBanner";
 import { schoolApi } from "../api/schoolApi";
 import { applyPageSeo, type PageSeo } from "../utils/pageSeo";
 
-
 /* =========================================================
    TYPES
 ========================================================= */
@@ -48,7 +47,6 @@ type InfrastructureRow = {
   details: string;
   link?: string;
 };
-
 
 /* =========================================================
    DATA
@@ -87,7 +85,8 @@ type MandatoryDisclosurePageData = {
   sections: DisclosureApiSection[];
 };
 
-const storageBaseUrl = "https://lightskyblue-eland-620788.hostingersite.com/storage/";
+const storageBaseUrl =
+  "https://lightskyblue-eland-620788.hostingersite.com/storage/";
 
 function plainText(html?: string | null) {
   return (
@@ -101,11 +100,17 @@ function plainText(html?: string | null) {
 }
 
 function sectionTitle(title: string | undefined, fallback: string) {
-  return title?.replace(/^[A-E]:\s*/i, "").replace(/:\s*$/, "").trim() || fallback;
+  return (
+    title
+      ?.replace(/^[A-E]:\s*/i, "")
+      .replace(/:\s*$/, "")
+      .trim() || fallback
+  );
 }
 
 function rowLink(row: DisclosureApiRow) {
-  if (row.document_path) return `${storageBaseUrl}${row.document_path.replace(/^\/+/, "")}`;
+  if (row.document_path)
+    return `${storageBaseUrl}${row.document_path.replace(/^\/+/, "")}`;
   if (row.document_path_url && !row.document_path_url.includes("localhost")) {
     return row.document_path_url;
   }
@@ -155,7 +160,6 @@ const generalInformation: GeneralRow[] = [
   },
 ];
 
-
 const documentsInformation: DocumentRow[] = [
   {
     sno: "1",
@@ -201,8 +205,7 @@ const documentsInformation: DocumentRow[] = [
   },
   {
     sno: "8",
-    information:
-      "COPIES OF VALID WATER, HEALTH AND SANITATION CERTIFICATES",
+    information: "COPIES OF VALID WATER, HEALTH AND SANITATION CERTIFICATES",
     link: "#",
   },
   {
@@ -216,7 +219,6 @@ const documentsInformation: DocumentRow[] = [
     link: "#",
   },
 ];
-
 
 const resultAcademics: DocumentRow[] = [
   {
@@ -250,7 +252,6 @@ const resultAcademics: DocumentRow[] = [
     link: "#",
   },
 ];
-
 
 const staffInformation: StaffRow[] = [
   {
@@ -319,7 +320,6 @@ const staffInformation: StaffRow[] = [
   },
 ];
 
-
 const infrastructureInformation: InfrastructureRow[] = [
   {
     sno: "1",
@@ -371,7 +371,6 @@ const infrastructureInformation: InfrastructureRow[] = [
   },
 ];
 
-
 /* =========================================================
    PAGE
 ========================================================= */
@@ -380,27 +379,33 @@ export function MandatoryDisclosurePage() {
   const { data: disclosurePage } = useQuery({
     queryKey: ["school-page", "mandatory-disclosure-information"],
     queryFn: async () => {
-      const response = await schoolApi.get<{ data: MandatoryDisclosurePageData }>(
-        "pages/mandatory-disclosure-information",
-      );
+      const response = await schoolApi.get<{
+        data: MandatoryDisclosurePageData;
+      }>("pages/mandatory-disclosure-information");
       return response.data.data;
     },
   });
 
   const findSection = (type: string) =>
-    disclosurePage?.sections.find((section) => section.type === type && section.is_active);
+    disclosurePage?.sections.find(
+      (section) => section.type === type && section.is_active,
+    );
   const banner = findSection("home_banner");
   const generalSection = findSection("mandatory_disclosure_general");
   const documentsSection = findSection("mandatory_disclosure_documents");
   const academicsSection = findSection("mandatory_disclosure_result_academics");
   const staffSection = findSection("mandatory_disclosure_staff");
-  const infrastructureSection = findSection("mandatory_disclosure_infrastructure");
+  const infrastructureSection = findSection(
+    "mandatory_disclosure_infrastructure",
+  );
 
-  const apiGeneral: GeneralRow[] = sectionRows(generalSection).map((row, index) => ({
-    sno: String(index + 1),
-    information: row.information || "",
-    details: row.details || "",
-  }));
+  const apiGeneral: GeneralRow[] = sectionRows(generalSection).map(
+    (row, index) => ({
+      sno: String(index + 1),
+      information: row.information || "",
+      details: row.details || "",
+    }),
+  );
   const mapDocuments = (section?: DisclosureApiSection): DocumentRow[] =>
     sectionRows(section).map((row, index) => ({
       sno: String(index + 1),
@@ -417,18 +422,22 @@ export function MandatoryDisclosurePage() {
     details: row.name_qualifications || row.link_label || row.details || "",
     link: rowLink(row),
   }));
-  const apiInfrastructure: InfrastructureRow[] = sectionRows(infrastructureSection).map(
-    (row, index) => ({
-      sno: String(index + 1),
-      information: row.information || "",
-      details: row.details || row.link_label || "",
-      link: rowLink(row),
-    }),
-  );
+  const apiInfrastructure: InfrastructureRow[] = sectionRows(
+    infrastructureSection,
+  ).map((row, index) => ({
+    sno: String(index + 1),
+    information: row.information || "",
+    details: row.details || row.link_label || "",
+    link: rowLink(row),
+  }));
 
   const displayedGeneral = apiGeneral.length ? apiGeneral : generalInformation;
-  const displayedDocuments = apiDocuments.length ? apiDocuments : documentsInformation;
-  const displayedAcademics = apiAcademics.length ? apiAcademics : resultAcademics;
+  const displayedDocuments = apiDocuments.length
+    ? apiDocuments
+    : documentsInformation;
+  const displayedAcademics = apiAcademics.length
+    ? apiAcademics
+    : resultAcademics;
   const displayedStaff = apiStaff.length ? apiStaff : staffInformation;
   const displayedInfrastructure = apiInfrastructure.length
     ? apiInfrastructure
@@ -443,12 +452,18 @@ export function MandatoryDisclosurePage() {
       <PageBanner
         image={banner?.image}
         imageUrl={banner?.image_url}
-        title={banner?.title || disclosurePage?.title || "Mandatory Disclosure Information"}
-        description={plainText(banner?.description) || "Access the school's required public disclosure information."}
+        title={
+          banner?.title ||
+          disclosurePage?.title ||
+          "Mandatory Disclosure Information"
+        }
+        description={
+          plainText(banner?.description) ||
+          "Access the school's required public disclosure information."
+        }
       />
 
       <main className="overflow-hidden bg-[#fbfaf7]">
-
         {/* =====================================================
             A. GENERAL INFORMATION
         ====================================================== */}
@@ -456,6 +471,7 @@ export function MandatoryDisclosurePage() {
         <DisclosureSection
           letter="A"
           title={sectionTitle(generalSection?.title, "General Information")}
+          description={generalSection?.description}
           icon={School}
           background="light"
         >
@@ -474,13 +490,9 @@ export function MandatoryDisclosurePage() {
                   <DisclosureRow key={row.sno}>
                     <SerialCell>{row.sno}</SerialCell>
 
-                    <InformationCell>
-                      {row.information}
-                    </InformationCell>
+                    <InformationCell>{row.information}</InformationCell>
 
-                    <DetailCell>
-                      {row.details}
-                    </DetailCell>
+                    <DetailCell>{row.details}</DetailCell>
                   </DisclosureRow>
                 ))}
               </tbody>
@@ -488,20 +500,22 @@ export function MandatoryDisclosurePage() {
           </TableWrapper>
         </DisclosureSection>
 
-
         {/* =====================================================
             B. DOCUMENTS AND INFORMATION
         ====================================================== */}
 
         <DisclosureSection
           letter="B"
-          title={sectionTitle(documentsSection?.title, "Documents and Information")}
+          title={sectionTitle(
+            documentsSection?.title,
+            "Documents and Information",
+          )}
+          description={documentsSection?.description}
           icon={FileText}
           background="muted"
         >
           <TableWrapper>
             <table className="w-full min-w-[900px] border-collapse">
-
               <DisclosureTableHead
                 columns={[
                   { title: "S.No.", width: "w-[90px]" },
@@ -518,31 +532,285 @@ export function MandatoryDisclosurePage() {
               <tbody>
                 {displayedDocuments.map((row) => (
                   <DisclosureRow key={row.sno}>
+                    <SerialCell>{row.sno}</SerialCell>
 
-                    <SerialCell>
-                      {row.sno}
-                    </SerialCell>
-
-                    <InformationCell>
-                      {row.information}
-                    </InformationCell>
+                    <InformationCell>{row.information}</InformationCell>
 
                     <td className="px-5 py-4 align-middle sm:px-6">
                       <DocumentLink href={row.link}>
                         {row.linkLabel || "Click here to access"}
                       </DocumentLink>
                     </td>
-
                   </DisclosureRow>
                 ))}
               </tbody>
-
             </table>
           </TableWrapper>
+        </DisclosureSection>
 
+        {/* =====================================================
+            C. RESULT AND ACADEMICS
+        ====================================================== */}
 
-          {/* NOTE */}
+        <DisclosureSection
+          letter="C"
+          title={sectionTitle(academicsSection?.title, "Result and Academics")}
+          description={academicsSection?.description}
+          icon={GraduationCap}
+          background="light"
+        >
+          <TableWrapper>
+            <table className="w-full min-w-[850px] border-collapse">
+              <DisclosureTableHead
+                columns={[
+                  { title: "S.No.", width: "w-[90px]" },
+                  {
+                    title: "Documents / Information",
+                  },
+                  {
+                    title: "Upload Documents",
+                    width: "w-[200px]",
+                  },
+                ]}
+              />
 
+              <tbody>
+                {displayedAcademics.map((row) => (
+                  <DisclosureRow key={row.sno}>
+                    <SerialCell>{row.sno}</SerialCell>
+
+                    <InformationCell>{row.information}</InformationCell>
+
+                    <td className="px-5 py-4 sm:px-6">
+                      <DocumentLink href={row.link}>
+                        {row.linkLabel || "Click here to access"}
+                      </DocumentLink>
+                    </td>
+                  </DisclosureRow>
+                ))}
+              </tbody>
+            </table>
+          </TableWrapper>
+        </DisclosureSection>
+
+        {/* =====================================================
+            D. STAFF
+        ====================================================== */}
+
+        <DisclosureSection
+          letter="D"
+          title={sectionTitle(staffSection?.title, "Staff (Teaching)")}
+          description={staffSection?.description}
+          icon={UsersRound}
+          background="muted"
+        >
+          <TableWrapper>
+            <table className="w-full min-w-[950px] border-collapse">
+              <DisclosureTableHead
+                columns={[
+                  { title: "S.No.", width: "w-[90px]" },
+                  {
+                    title: "Information",
+                    width: "w-[43%]",
+                  },
+                  {
+                    title: "Number / Strength",
+                    width: "w-[190px]",
+                  },
+                  {
+                    title: "Name and Qualifications",
+                    width: "w-[28%]",
+                  },
+                ]}
+              />
+
+              <tbody>
+                {displayedStaff.map((row, index) => (
+                  <DisclosureRow key={`${row.information}-${index}`}>
+                    <SerialCell>{row.sno}</SerialCell>
+
+                    <InformationCell>{row.information}</InformationCell>
+
+                    <DetailCell>{row.strength}</DetailCell>
+
+                    <td className="px-5 py-4 sm:px-6">
+                      {row.link ? (
+                        <DocumentLink href={row.link}>
+                          {row.details}
+                        </DocumentLink>
+                      ) : (
+                        <span className="whitespace-pre-line text-sm leading-6 text-slate-600">
+                          {row.details}
+                        </span>
+                      )}
+                    </td>
+                  </DisclosureRow>
+                ))}
+              </tbody>
+            </table>
+          </TableWrapper>
+        </DisclosureSection>
+
+        {/* =====================================================
+            E. SCHOOL INFRASTRUCTURE
+        ====================================================== */}
+
+        <DisclosureSection
+          letter="E"
+          title={sectionTitle(
+            infrastructureSection?.title,
+            "School Infrastructure",
+          )}
+          description={infrastructureSection?.description}
+          icon={Building2}
+          background="light"
+        >
+          <TableWrapper>
+            <table className="w-full min-w-[850px] border-collapse">
+              <DisclosureTableHead
+                columns={[
+                  { title: "S.No.", width: "w-[90px]" },
+                  {
+                    title: "Information",
+                  },
+                  {
+                    title: "Details",
+                    width: "w-[200px]",
+                  },
+                ]}
+              />
+
+              <tbody>
+                {displayedInfrastructure.map((row) => (
+                  <DisclosureRow key={row.sno}>
+                    <SerialCell>{row.sno}</SerialCell>
+
+                    <InformationCell>{row.information}</InformationCell>
+
+                    <td className="px-5 py-4 sm:px-6">
+                      {row.link ? (
+                        <DocumentLink href={row.link}>
+                          {row.details}
+                        </DocumentLink>
+                      ) : (
+                        <span className="text-sm leading-6 text-slate-600">
+                          {row.details}
+                        </span>
+                      )}
+                    </td>
+                  </DisclosureRow>
+                ))}
+              </tbody>
+            </table>
+          </TableWrapper>
+        </DisclosureSection>
+      </main>
+    </>
+  );
+}
+
+/* =========================================================
+   SECTION
+========================================================= */
+
+type DisclosureSectionProps = {
+  letter: string;
+  title: string;
+  description?: string | null;
+  icon: LucideIcon;
+  background: "light" | "muted";
+  children: React.ReactNode;
+};
+
+function DisclosureSection({
+  letter,
+  title,
+  description,
+  icon: Icon,
+  background,
+  children,
+}: DisclosureSectionProps) {
+  const descriptionText = plainText(description);
+
+  return (
+    <section
+      className={[
+        "relative overflow-hidden py-12 sm:py-14 lg:py-16",
+        background === "muted"
+          ? "border-y border-navy/10 bg-[#f2f5f6]"
+          : "bg-[#fbfaf7]",
+      ].join(" ")}
+    >
+      {/* Decorative ring */}
+      <div
+        className="
+          pointer-events-none
+          absolute
+          -right-28
+          -top-28
+          size-72
+          rounded-full
+          border-[38px]
+          border-gold/[.035]
+        "
+        aria-hidden="true"
+      />
+
+      <div className="container relative">
+        {/* =================================================
+            SECTION HEADING
+        ================================================== */}
+
+        <div className="mb-7 flex items-center gap-4 sm:mb-8">
+          {/* Section Number */}
+
+          <div
+            className="
+              grid
+              size-12
+              shrink-0
+              place-items-center
+              rounded-xl
+              bg-navy
+              text-gold
+              shadow-lg
+              shadow-navy/10
+            "
+          >
+            <Icon size={20} strokeWidth={1.8} aria-hidden="true" />
+          </div>
+
+          <div>
+            <div className="flex items-center gap-2">
+              <span
+                className="
+                  text-xs
+                  font-bold
+                  uppercase
+                  tracking-[0.18em]
+                  text-gold-dark
+                "
+              >
+                {letter}.
+              </span>
+
+              <h2 className="font-serif text-2xl leading-tight text-navy sm:text-3xl">
+                {title}
+              </h2>
+            </div>
+
+            <div
+              className="mt-3 h-[2px] w-10 rounded-full bg-gold"
+              aria-hidden="true"
+            />
+          </div>
+        </div>
+
+        {/* TABLE / SECTION CONTENT */}
+        {children}
+
+        {/* DYNAMIC DESCRIPTION / NOTE */}
+        {descriptionText && (
           <div
             className="
               mt-5
@@ -570,351 +838,25 @@ export function MandatoryDisclosurePage() {
                 shadow-sm
               "
             >
-              <Info
-                size={17}
-                strokeWidth={2}
-                aria-hidden="true"
-              />
+              <Info size={17} strokeWidth={2} aria-hidden="true" />
             </div>
 
             <p className="pt-1 text-sm leading-6 text-slate-600">
-              <strong className="font-semibold text-navy">
-                Note:
-              </strong>{" "}
-              The schools needs to upload the self attested copies of above
-              listed document by chairman/manager/secretary and principal. In
-              case, it is noticed at later stage that uploaded documents are
-              not genuine then school shall be liable for action as per norms.
+              <strong className="font-semibold text-navy">Note:</strong>{" "}
+              {descriptionText}
             </p>
           </div>
-
-        </DisclosureSection>
-
-
-        {/* =====================================================
-            C. RESULT AND ACADEMICS
-        ====================================================== */}
-
-        <DisclosureSection
-          letter="C"
-          title={sectionTitle(academicsSection?.title, "Result and Academics")}
-          icon={GraduationCap}
-          background="light"
-        >
-          <TableWrapper>
-
-            <table className="w-full min-w-[850px] border-collapse">
-
-              <DisclosureTableHead
-                columns={[
-                  { title: "S.No.", width: "w-[90px]" },
-                  {
-                    title: "Documents / Information",
-                  },
-                  {
-                    title: "Upload Documents",
-                    width: "w-[200px]",
-                  },
-                ]}
-              />
-
-              <tbody>
-                {displayedAcademics.map((row) => (
-                  <DisclosureRow key={row.sno}>
-
-                    <SerialCell>
-                      {row.sno}
-                    </SerialCell>
-
-                    <InformationCell>
-                      {row.information}
-                    </InformationCell>
-
-                    <td className="px-5 py-4 sm:px-6">
-                      <DocumentLink href={row.link}>
-                        {row.linkLabel || "Click here to access"}
-                      </DocumentLink>
-                    </td>
-
-                  </DisclosureRow>
-                ))}
-              </tbody>
-
-            </table>
-
-          </TableWrapper>
-        </DisclosureSection>
-
-
-        {/* =====================================================
-            D. STAFF
-        ====================================================== */}
-
-        <DisclosureSection
-          letter="D"
-          title={sectionTitle(staffSection?.title, "Staff (Teaching)")}
-          icon={UsersRound}
-          background="muted"
-        >
-          <TableWrapper>
-
-            <table className="w-full min-w-[950px] border-collapse">
-
-              <DisclosureTableHead
-                columns={[
-                  { title: "S.No.", width: "w-[90px]" },
-                  {
-                    title: "Information",
-                    width: "w-[43%]",
-                  },
-                  {
-                    title: "Number / Strength",
-                    width: "w-[190px]",
-                  },
-                  {
-                    title: "Name and Qualifications",
-                    width: "w-[28%]",
-                  },
-                ]}
-              />
-
-              <tbody>
-                {displayedStaff.map((row, index) => (
-                  <DisclosureRow
-                    key={`${row.information}-${index}`}
-                  >
-
-                    <SerialCell>
-                      {row.sno}
-                    </SerialCell>
-
-                    <InformationCell>
-                      {row.information}
-                    </InformationCell>
-
-                    <DetailCell>
-                      {row.strength}
-                    </DetailCell>
-
-                    <td className="px-5 py-4 sm:px-6">
-
-                      {row.link ? (
-                        <DocumentLink href={row.link}>
-                          {row.details}
-                        </DocumentLink>
-                      ) : (
-                        <span className="whitespace-pre-line text-sm leading-6 text-slate-600">
-                          {row.details}
-                        </span>
-                      )}
-
-                    </td>
-
-                  </DisclosureRow>
-                ))}
-              </tbody>
-
-            </table>
-
-          </TableWrapper>
-        </DisclosureSection>
-
-
-        {/* =====================================================
-            E. SCHOOL INFRASTRUCTURE
-        ====================================================== */}
-
-        <DisclosureSection
-          letter="E"
-          title={sectionTitle(infrastructureSection?.title, "School Infrastructure")}
-          icon={Building2}
-          background="light"
-        >
-          <TableWrapper>
-
-            <table className="w-full min-w-[850px] border-collapse">
-
-              <DisclosureTableHead
-                columns={[
-                  { title: "S.No.", width: "w-[90px]" },
-                  {
-                    title: "Information",
-                  },
-                  {
-                    title: "Details",
-                    width: "w-[200px]",
-                  },
-                ]}
-              />
-
-              <tbody>
-                {displayedInfrastructure.map((row) => (
-                  <DisclosureRow key={row.sno}>
-
-                    <SerialCell>
-                      {row.sno}
-                    </SerialCell>
-
-                    <InformationCell>
-                      {row.information}
-                    </InformationCell>
-
-                    <td className="px-5 py-4 sm:px-6">
-
-                      {row.link ? (
-                        <DocumentLink href={row.link}>
-                          {row.details}
-                        </DocumentLink>
-                      ) : (
-                        <span className="text-sm leading-6 text-slate-600">
-                          {row.details}
-                        </span>
-                      )}
-
-                    </td>
-
-                  </DisclosureRow>
-                ))}
-              </tbody>
-
-            </table>
-
-          </TableWrapper>
-        </DisclosureSection>
-
-      </main>
-    </>
-  );
-}
-
-
-/* =========================================================
-   SECTION
-========================================================= */
-
-type DisclosureSectionProps = {
-  letter: string;
-  title: string;
-  icon: LucideIcon;
-  background: "light" | "muted";
-  children: React.ReactNode;
-};
-
-
-function DisclosureSection({
-  letter,
-  title,
-  icon: Icon,
-  background,
-  children,
-}: DisclosureSectionProps) {
-  return (
-    <section
-      className={[
-        "relative overflow-hidden py-12 sm:py-14 lg:py-16",
-        background === "muted"
-          ? "border-y border-navy/10 bg-[#f2f5f6]"
-          : "bg-[#fbfaf7]",
-      ].join(" ")}
-    >
-
-      {/* Decorative ring */}
-
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -right-28
-          -top-28
-          size-72
-          rounded-full
-          border-[38px]
-          border-gold/[.035]
-        "
-        aria-hidden="true"
-      />
-
-      <div className="container relative">
-
-        {/* =================================================
-            SECTION HEADING
-        ================================================== */}
-
-        <div className="mb-7 flex items-center gap-4 sm:mb-8">
-
-          {/* Section Number */}
-
-          <div
-            className="
-              grid
-              size-12
-              shrink-0
-              place-items-center
-              rounded-xl
-              bg-navy
-              text-gold
-              shadow-lg
-              shadow-navy/10
-            "
-          >
-            <Icon
-              size={20}
-              strokeWidth={1.8}
-              aria-hidden="true"
-            />
-          </div>
-
-
-          <div>
-
-            <div className="flex items-center gap-2">
-
-              <span
-                className="
-                  text-xs
-                  font-bold
-                  uppercase
-                  tracking-[0.18em]
-                  text-gold-dark
-                "
-              >
-                {letter}.
-              </span>
-
-              <h2 className="font-serif text-2xl leading-tight text-navy sm:text-3xl">
-                {title}
-              </h2>
-
-            </div>
-
-            <div
-              className="mt-3 h-[2px] w-10 rounded-full bg-gold"
-              aria-hidden="true"
-            />
-
-          </div>
-
-        </div>
-
-
-        {children}
-
+        )}
       </div>
-
     </section>
   );
 }
-
 
 /* =========================================================
    TABLE WRAPPER
 ========================================================= */
 
-function TableWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function TableWrapper({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="
@@ -926,13 +868,10 @@ function TableWrapper({
         shadow-[0_18px_55px_-38px_rgba(16,42,67,0.35)]
       "
     >
-      <div className="overflow-x-auto">
-        {children}
-      </div>
+      <div className="overflow-x-auto">{children}</div>
     </div>
   );
 }
-
 
 /* =========================================================
    TABLE HEADER
@@ -943,17 +882,10 @@ type TableColumn = {
   width?: string;
 };
 
-
-function DisclosureTableHead({
-  columns,
-}: {
-  columns: TableColumn[];
-}) {
+function DisclosureTableHead({ columns }: { columns: TableColumn[] }) {
   return (
     <thead>
-
       <tr className="bg-navy">
-
         {columns.map((column) => (
           <th
             key={column.title}
@@ -979,23 +911,16 @@ function DisclosureTableHead({
             {column.title}
           </th>
         ))}
-
       </tr>
-
     </thead>
   );
 }
-
 
 /* =========================================================
    TABLE ROW
 ========================================================= */
 
-function DisclosureRow({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DisclosureRow({ children }: { children: React.ReactNode }) {
   return (
     <tr
       className="
@@ -1012,19 +937,13 @@ function DisclosureRow({
   );
 }
 
-
 /* =========================================================
    SERIAL CELL
 ========================================================= */
 
-function SerialCell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function SerialCell({ children }: { children: React.ReactNode }) {
   return (
     <td className="px-5 py-4 align-middle sm:px-6">
-
       <span
         className="
           inline-flex
@@ -1042,21 +961,15 @@ function SerialCell({
       >
         {children}
       </span>
-
     </td>
   );
 }
-
 
 /* =========================================================
    INFORMATION CELL
 ========================================================= */
 
-function InformationCell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function InformationCell({ children }: { children: React.ReactNode }) {
   return (
     <td
       className="
@@ -1076,27 +989,19 @@ function InformationCell({
   );
 }
 
-
 /* =========================================================
    DETAIL CELL
 ========================================================= */
 
-function DetailCell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DetailCell({ children }: { children: React.ReactNode }) {
   return (
     <td className="px-5 py-4 sm:px-6">
-
       <span className="whitespace-pre-line text-sm leading-6 text-slate-600">
         {children}
       </span>
-
     </td>
   );
 }
-
 
 /* =========================================================
    DOCUMENT LINK
@@ -1141,5 +1046,3 @@ function DocumentLink({
     </a>
   );
 }
-
-

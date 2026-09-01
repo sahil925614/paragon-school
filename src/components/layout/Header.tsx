@@ -1,13 +1,8 @@
-import { ArrowUpRight,
-  ChevronDown,
-  Menu,
-  Phone,
-  X,} from "lucide-react";
+import { ArrowUpRight, ChevronDown, Menu, Phone, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { schoolApi } from "../../features/school/api/schoolApi";
-
 
 type HeaderFooterData = {
   logo?: string;
@@ -68,7 +63,12 @@ const admissionMenu: DropdownMenu = {
 const activitiesMenu: DropdownMenu = {
   label: "Activities",
   path: "#",
-  matchPaths: ["/school/activities", "/school/flashbacks", "/school/club-activities", "/school/houses-activities"],
+  matchPaths: [
+    "/school/activities",
+    "/school/flashbacks",
+    "/school/club-activities",
+    "/school/houses-activities",
+  ],
   children: [
     { label: "Flashbacks", path: "/school/flashbacks" },
     { label: "Club Activities", path: "/school/club-activities" },
@@ -92,7 +92,9 @@ export function Header() {
   const { data: footer } = useQuery({
     queryKey: ["school-footer"],
     queryFn: async () => {
-      const response = await schoolApi.get<{ data: HeaderFooterData }>("footer");
+      const response = await schoolApi.get<{ data: HeaderFooterData }>(
+        "footer",
+      );
       return response.data.data;
     },
   });
@@ -101,17 +103,22 @@ export function Header() {
     ?.split(",")
     .map((email) => email.trim())
     .filter(Boolean) || [
-      "principalparagon2012@gmail.com",
-      "paragonschool71@gmail.com",
-    ];
-  const primaryEmail = announcementEmails[0] || "principalparagon2012@gmail.com";
+    "principalparagon2012@gmail.com",
+    "paragonschool71@gmail.com",
+  ];
+  const primaryEmail =
+    announcementEmails[0] || "principalparagon2012@gmail.com";
   const secondaryEmail = announcementEmails[1] || primaryEmail;
   const phone = footer?.phone || "0172-5097142";
   const phoneHref = `tel:${phone.replace(/[^\d+]/g, "")}`;
-  const logo = mediaUrl(footer?.logo, footer?.logo_url) || "/images/paragon-school-logo.webp";
+  const logo =
+    mediaUrl(footer?.logo, footer?.logo_url) ||
+    "/images/paragon-school-logo.webp";
   const [open, setOpen] = useState(false);
   const [mobileDropdown, setMobileDropdown] = useState<string | null>(null);
-  const [openDesktopDropdown, setOpenDesktopDropdown] = useState<string | null>(null);
+  const [openDesktopDropdown, setOpenDesktopDropdown] = useState<string | null>(
+    null,
+  );
   const [isScrolled, setIsScrolled] = useState(false);
   const { pathname } = useLocation();
 
@@ -133,7 +140,11 @@ export function Header() {
     }
   }, [pathname]);
   const preventHeaderDrag = (event: React.MouseEvent<HTMLElement>) => {
-    if (event.button === 0 && event.target instanceof Element && event.target.closest("a, button")) {
+    if (
+      event.button === 0 &&
+      event.target instanceof Element &&
+      event.target.closest("a, button")
+    ) {
       event.preventDefault();
     }
   };
@@ -239,28 +250,31 @@ export function Header() {
   };
 
   return (
-    <header onMouseDownCapture={preventHeaderDrag} onDragStart={(event) => event.preventDefault()} className="sticky top-0 z-50 select-none border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header
+      onMouseDownCapture={preventHeaderDrag}
+      onDragStart={(event) => event.preventDefault()}
+      className="sticky top-0 z-50 select-none border-b border-slate-200 bg-white/95 backdrop-blur"
+    >
       {/* =========================================================
     TOP ANNOUNCEMENT BAR
 ========================================================= */}
 
-<div
-  className={`grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
-    isScrolled
-      ? "pointer-events-none -translate-y-1 grid-rows-[0fr] opacity-0"
-      : "translate-y-0 grid-rows-[1fr] opacity-100"
-  }`}
-  aria-hidden={isScrolled}
->
-<div className="relative z-[60] min-h-0 overflow-hidden bg-[#08294d] text-white">
-  <div className="container flex min-h-[38px] items-center">
-
-    {/* =====================================================
+      <div
+        className={`grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
+          isScrolled
+            ? "pointer-events-none -translate-y-1 grid-rows-[0fr] opacity-0"
+            : "translate-y-0 grid-rows-[1fr] opacity-100"
+        }`}
+        aria-hidden={isScrolled}
+      >
+        <div className="relative z-[60] min-h-0 overflow-hidden bg-[#08294d] text-white">
+          <div className="container flex min-h-[38px] items-center">
+            {/* =====================================================
         ANNOUNCEMENT LABEL
     ====================================================== */}
 
-    <div
-      className="
+            <div
+              className="
         relative
         z-20
         flex
@@ -281,11 +295,11 @@ export function Header() {
 
         lg:px-5
       "
-    >
-      {/* Pulsing Dot */}
-      <span className="relative flex size-2">
-        <span
-          className="
+            >
+              {/* Pulsing Dot */}
+              <span className="relative flex size-2">
+                <span
+                  className="
             absolute
             inline-flex
             size-full
@@ -294,30 +308,26 @@ export function Header() {
             bg-white
             opacity-50
           "
-        />
+                />
 
-        <span
-          className="
+                <span
+                  className="
             relative
             inline-flex
             size-2
             rounded-full
             bg-white
           "
-        />
-      </span>
+                />
+              </span>
 
-      <span className="hidden sm:inline">
-        School Updates
-      </span>
+              <span className="hidden sm:inline">School Updates</span>
 
-      <span className="sm:hidden">
-        Updates
-      </span>
+              <span className="sm:hidden">Updates</span>
 
-      {/* angled edge */}
-      <span
-        className="
+              {/* angled edge */}
+              <span
+                className="
           absolute
           -right-[10px]
           top-0
@@ -326,16 +336,16 @@ export function Header() {
           skew-x-[-18deg]
           bg-[#c72c3b]
         "
-        aria-hidden="true"
-      />
-    </div>
+                aria-hidden="true"
+              />
+            </div>
 
-    {/* =====================================================
+            {/* =====================================================
         MOVING NEWS / INFORMATION
     ====================================================== */}
 
-    <div
-      className="
+            <div
+              className="
         relative
         min-w-0
         flex-1
@@ -343,11 +353,11 @@ export function Header() {
         pl-5
         pr-3
       "
-    >
-      {/* subtle fade edges */}
+            >
+              {/* subtle fade edges */}
 
-      <div
-        className="
+              <div
+                className="
           pointer-events-none
           absolute
           inset-y-0
@@ -358,10 +368,10 @@ export function Header() {
           from-[#08294d]
           to-transparent
         "
-      />
+              />
 
-      <div
-        className="
+              <div
+                className="
           pointer-events-none
           absolute
           inset-y-0
@@ -372,13 +382,13 @@ export function Header() {
           from-[#08294d]
           to-transparent
         "
-      />
+              />
 
-      <div className="announcement-track flex w-max items-center">
-        {/* FIRST COPY */}
+              <div className="announcement-track flex w-max items-center">
+                {/* FIRST COPY */}
 
-        <div
-          className="
+                <div
+                  className="
             flex
             shrink-0
             items-center
@@ -389,51 +399,49 @@ export function Header() {
             text-white/85
             sm:text-[11px]
           "
-        >
-          <span className="whitespace-nowrap">
-            CBSE Affiliated
-          </span>
+                >
+                  <span className="whitespace-nowrap">CBSE Affiliated</span>
 
-          <span className="size-1 rounded-full bg-[#e63946]" />
+                  <span className="size-1 rounded-full bg-[#e63946]" />
 
-          <span className="whitespace-nowrap">
-            {announcementAddress}
-          </span>
+                  <span className="whitespace-nowrap">
+                    {announcementAddress}
+                  </span>
 
-          <span className="size-1 rounded-full bg-[#e63946]" />
+                  <span className="size-1 rounded-full bg-[#e63946]" />
 
-          <a
-            href={`mailto:${primaryEmail}`}
-            className="
+                  <a
+                    href={`mailto:${primaryEmail}`}
+                    className="
               whitespace-nowrap
               transition-colors
               hover:text-white
             "
-          >
-            {primaryEmail}
-          </a>
+                  >
+                    {primaryEmail}
+                  </a>
 
-          <span className="size-1 rounded-full bg-[#e63946]" />
+                  <span className="size-1 rounded-full bg-[#e63946]" />
 
-          <a
-            href={`mailto:${secondaryEmail}`}
-            className="
+                  <a
+                    href={`mailto:${secondaryEmail}`}
+                    className="
               whitespace-nowrap
               transition-colors
               hover:text-white
             "
-          >
-            {secondaryEmail}
-          </a>
-        </div>
+                  >
+                    {secondaryEmail}
+                  </a>
+                </div>
 
-        {/* DUPLICATE COPY
+                {/* DUPLICATE COPY
             Required for seamless infinite animation
         */}
 
-        <div
-          aria-hidden="true"
-          className="
+                <div
+                  aria-hidden="true"
+                  className="
             flex
             shrink-0
             items-center
@@ -444,38 +452,32 @@ export function Header() {
             text-white/85
             sm:text-[11px]
           "
-        >
-          <span className="whitespace-nowrap">
-            CBSE Affiliated
-          </span>
+                >
+                  <span className="whitespace-nowrap">CBSE Affiliated</span>
 
-          <span className="size-1 rounded-full bg-[#e63946]" />
+                  <span className="size-1 rounded-full bg-[#e63946]" />
 
-          <span className="whitespace-nowrap">
-            {announcementAddress}
-          </span>
+                  <span className="whitespace-nowrap">
+                    {announcementAddress}
+                  </span>
 
-          <span className="size-1 rounded-full bg-[#e63946]" />
+                  <span className="size-1 rounded-full bg-[#e63946]" />
 
-          <span className="whitespace-nowrap">
-            {primaryEmail}
-          </span>
+                  <span className="whitespace-nowrap">{primaryEmail}</span>
 
-          <span className="size-1 rounded-full bg-[#e63946]" />
+                  <span className="size-1 rounded-full bg-[#e63946]" />
 
-          <span className="whitespace-nowrap">
-            {secondaryEmail}
-          </span>
-        </div>
-      </div>
-    </div>
+                  <span className="whitespace-nowrap">{secondaryEmail}</span>
+                </div>
+              </div>
+            </div>
 
-    {/* =====================================================
+            {/* =====================================================
         RIGHT ACTIONS
     ====================================================== */}
 
-    <div
-      className="
+            <div
+              className="
         relative
         z-20
         hidden
@@ -485,12 +487,12 @@ export function Header() {
         bg-[#08294d]
         lg:flex
       "
-    >
-      {/* PHONE */}
+            >
+              {/* PHONE */}
 
-      <a
-        href={phoneHref}
-        className="
+              <a
+                href={phoneHref}
+                className="
           group
           flex
           h-full
@@ -506,24 +508,24 @@ export function Header() {
           hover:bg-white/[0.06]
           hover:text-white
         "
-      >
-        <Phone
-          size={12}
-          className="
+              >
+                <Phone
+                  size={12}
+                  className="
             text-[#e63946]
             transition-transform
             group-hover:scale-110
           "
-        />
+                />
 
-        {phone}
-      </a>
+                {phone}
+              </a>
 
-      {/* PARAGON KIDS */}
+              {/* PARAGON KIDS */}
 
-     <Link
-  to="/kids"
-  className="
+              <Link
+                to="/kids"
+                className="
     group
     flex
     h-[38px]
@@ -539,23 +541,22 @@ export function Header() {
     transition-colors
     hover:bg-[#b52030]
   "
->
-  Go to Paragon Kids
-
-  <ArrowUpRight
-    size={13}
-    className="
+              >
+                Go to Paragon Kids
+                <ArrowUpRight
+                  size={13}
+                  className="
       transition-transform
       duration-300
       group-hover:-translate-y-0.5
       group-hover:translate-x-0.5
     "
-  />
-</Link>
-    </div>
-  </div>
-</div>
-</div>
+                />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="container flex h-20 items-center justify-between">
         <Link
           to="/school"
@@ -601,13 +602,21 @@ export function Header() {
             </NavLink>
           ))}
         </nav>
-        <button
-          className="lg:hidden"
-          aria-label="Toggle navigation"
-          onClick={() => setOpen(!open)}
-        >
-          {open ? <X /> : <Menu />}
-        </button>
+        <div className="flex items-center gap-2 lg:hidden">
+          <Link
+            to="/kids"
+            className="inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full bg-[#c72c3b] px-3 text-[8px]  uppercase tracking-[.1em] text-white shadow-sm transition hover:bg-[#b52030] min-[390px]:text-[9px]"
+          >
+            Paragon Kids
+            <ArrowUpRight size={12} />
+          </Link>
+          <button
+            aria-label="Toggle navigation"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <X /> : <Menu />}
+          </button>
+        </div>
       </div>
       {open && (
         <nav className="container max-h-[calc(100vh-7rem)] overflow-y-auto border-t py-4 lg:hidden">
@@ -649,9 +658,3 @@ export function Header() {
     </header>
   );
 }
-
-
-
-
-
-

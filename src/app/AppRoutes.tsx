@@ -1,4 +1,4 @@
-﻿import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { ScrollToTop } from '../components/ScrollToTop'
 import { AcademicsPage } from '../features/school/pages/academics/AcademicsPage'
 import { ActivitiesPage } from '../features/school/pages/activities/ActivitiesPage'
@@ -50,7 +50,6 @@ import { KidsInfrastructurePage } from '../features/kids/pages/KidsInfrastructur
 import { KidsMissionVisionPage } from '../features/kids/pages/KidsMissionVisionPage'
 import { KidsPresidentsDeskPage } from '../features/kids/pages/KidsPresidentsDeskPage'
 import { KidsPrincipalsDeskPage } from '../features/kids/pages/KidsPrincipalsDeskPage'
-import { NotFoundPage } from '../pages/NotFoundPage'
 import { SchoolSelectorPage } from '../pages/SchoolSelectorPage'
 
 export function AppRoutes() {
@@ -96,6 +95,7 @@ export function AppRoutes() {
       <Route path="contact" element={<ContactPage />} />
       <Route path="mandatory-disclosure-information" element={<MandatoryDisclosurePage />} />
       <Route path="mandatory-disclosure" element={<Navigate replace to="/school/mandatory-disclosure-information" />} />
+      <Route path="*" element={<Navigate replace to="/school" />} />
     </Route>
     <Route path="kids" element={<KidsLayout />}>
       <Route index element={<KidsHomePage />} />
@@ -115,9 +115,10 @@ export function AppRoutes() {
       <Route path="gallery/:categorySlug" element={<KidsGalleryCategoryPage />} />
       <Route path="contact" element={<KidsContactPage />} />
       <Route path="mandatory-disclosure" element={<KidsDisclosurePage />} />
+      <Route path="*" element={<Navigate replace to="/kids" />} />
       </Route>
     {['about', 'academics', 'admissions', 'activities', 'gallery', 'contact'].map((path) => <Route key={path} path={path} element={<Navigate replace to={`/school/${path}`} />} />)}
-    <Route path="*" element={<NotFoundPage />} />
+    <Route path="*" element={<Navigate replace to="/" />} />
   </Routes></>
 }
 

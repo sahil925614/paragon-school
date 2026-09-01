@@ -1,19 +1,212 @@
-﻿import { Award, BookOpen, Bus, CalendarHeart, Camera, Flag, GalleryHorizontalEnd, LandPlot, Medal, MicVocal, Newspaper, TentTree } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
-export type GalleryCategory = { slug: string; title: string; shortDescription: string; description: string; cover: string; icon: LucideIcon; photos: { src: string; alt: string }[] }
-const photos = (...items: [string, string][]) => items.map(([src, alt]) => ({ src: `/images/${src}`, alt }))
+﻿import {
+  Award,
+  BookOpen,
+  Bus,
+  CalendarHeart,
+  Camera,
+  Flag,
+  GalleryHorizontalEnd,
+  LandPlot,
+  Medal,
+  MicVocal,
+  Newspaper,
+  TentTree,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+export type GalleryCategory = {
+  slug: string;
+  title: string;
+  shortDescription: string;
+  description: string;
+  cover: string;
+  icon: LucideIcon;
+  photos: { src: string; alt: string }[];
+};
+const photos = (...items: [string, string][]) =>
+  items.map(([src, alt]) => ({ src: `/images/${src}`, alt }));
 export const galleryCategories: GalleryCategory[] = [
-  { slug: 'festivals', title: 'Festivals', shortDescription: 'Celebrating traditions, culture and togetherness.', description: 'A colourful collection of festival celebrations that bring our school community together.', cover: '/images/art_room_1.webp', icon: CalendarHeart, photos: photos(['art_room_1.webp','Creative festival celebrations'],['auditorium.webp','Students celebrating together'],['music_room.webp','Cultural music presentation'],['paragon-school.webp','The school community']) },
-  { slug: 'observing-days', title: 'Observing Days', shortDescription: 'Meaningful days that inspire awareness and action.', description: 'Special assemblies and activities through which students learn, reflect and participate.', cover: '/images/paragon-school.webp', icon: Flag, photos: photos(['paragon-school.webp','Special day at Paragon School'],['smart_classes.webp','Awareness session'],['library.webp','Students learning together'],['auditorium.webp','Special assembly']) },
-  { slug: 'sports-activities', title: 'Sports Activities', shortDescription: 'Energy, teamwork and sporting excellence.', description: 'Capturing the determination, discipline and team spirit of our young sportspersons.', cover: '/images/sports_day.webp', icon: Medal, photos: photos(['sports_day.webp','Annual sports day'],['maths-park.webp','Outdoor school activity'],['paragon-school.webp','School grounds'],['award8.webp','Sports achievement']) },
-  { slug: 'newspaper-coverage', title: 'Newspaper Coverage', shortDescription: 'Paragon stories featured in the press.', description: 'News clippings and media moments highlighting milestones across the school community.', cover: '/images/award1.webp', icon: Newspaper, photos: photos(['award1.webp','School achievement in focus'],['award2.webp','Paragon recognition'],['award3.webp','Student success story'],['award4.webp','Media recognition']) },
-  { slug: 'annual-function', title: 'Annual Function', shortDescription: 'An evening of talent, creativity and celebration.', description: 'Memorable performances and proud moments from our annual cultural showcase.', cover: '/images/auditorium.webp', icon: MicVocal, photos: photos(['auditorium.webp','Annual function venue'],['music_room.webp','Musical performance'],['art_room_1.webp','Creative presentation'],['award5.webp','Annual function honour']) },
-  { slug: 'talks-and-seminars', title: 'Talks & Seminars', shortDescription: 'Ideas, conversations and inspired learning.', description: 'Interactive talks and seminars that connect students with knowledge beyond the classroom.', cover: '/images/smart_classes.webp', icon: BookOpen, photos: photos(['smart_classes.webp','Interactive seminar'],['auditorium.webp','Guest talk'],['library.webp','Learning session'],['lab.webp','Practical workshop']) },
-  { slug: 'achievements', title: 'Achievements (Teachers & Students)', shortDescription: 'Celebrating our teachers and students.', description: 'Honouring the awards, accomplishments and milestones of Paragon teachers and students.', cover: '/images/award1.webp', icon: Award, photos: photos(['award1.webp','Paragon award recipient'],['award2.webp','Student achievement'],['award6.webp','Excellence recognised'],['award9.webp','Proud achievement'],['award10.webp','Award ceremony'],['award7.webp','Teachers and students honoured']) },
-  { slug: 'class-activities', title: 'Class Activities', shortDescription: 'Curious minds learning by doing.', description: 'Engaging classroom experiences that make learning creative, practical and joyful.', cover: '/images/smart_classes.webp', icon: Camera, photos: photos(['smart_classes.webp','Smart classroom activity'],['art_room_1.webp','Art class activity'],['lab.webp','Learning in the laboratory'],['library.webp','Library activity']) },
-  { slug: 'inter-house-activities', title: 'Inter House Activities', shortDescription: 'Healthy competition, leadership and house spirit.', description: 'A glimpse of competitions that encourage confidence, collaboration and camaraderie.', cover: '/images/sports_day.webp', icon: LandPlot, photos: photos(['sports_day.webp','Inter-house sports'],['auditorium.webp','Inter-house stage event'],['music_room.webp','House music competition'],['award4.webp','Competition winners']) },
-  { slug: 'field-trips', title: 'Field Trips', shortDescription: 'Learning beyond the school walls.', description: 'Educational outings that turn real places and experiences into memorable lessons.', cover: '/images/school_bus.webp', icon: Bus, photos: photos(['school_bus.webp','Students set out on a field trip'],['solar-panels.webp','Learning about solar energy'],['maths-park.webp','Outdoor learning'],['paragon-school.webp','Students gathering for a visit']) },
-  { slug: 'exhibitions', title: 'Exhibitions', shortDescription: 'Young ideas presented with confidence.', description: 'Innovative models, artwork and projects created and presented by our students.', cover: '/images/lab.webp', icon: GalleryHorizontalEnd, photos: photos(['lab.webp','Science exhibition'],['art_room_1.webp','Student artwork'],['solar-panels.webp','Sustainability model'],['maths-park.webp','Mathematics exhibit']) },
-  { slug: 'trips-and-excursions', title: 'Trips & Excursions', shortDescription: 'Exploration, friendship and lasting memories.', description: 'Moments from journeys that help students discover new places, perspectives and friendships.', cover: '/images/paragon-school.webp', icon: TentTree, photos: photos(['school_bus.webp','Beginning a school excursion'],['paragon-school.webp','Students ready for their trip'],['sports_day.webp','Friends enjoying time together'],['solar-panels.webp','Educational excursion']) },
-]
-export const getGalleryCategory = (slug?: string) => galleryCategories.find((category) => category.slug === slug)
+  {
+    slug: "festivals",
+    title: "Festivals",
+    shortDescription: "Celebrating traditions, culture and togetherness.",
+    description:
+      "A colourful collection of festival celebrations that bring our school community together.",
+    cover: "/images/art_room_1.webp",
+    icon: CalendarHeart,
+    photos: photos(
+      ["art_room_1.webp", "Creative festival celebrations"],
+      ["auditorium.webp", "Students celebrating together"],
+      ["music_room.webp", "Cultural music presentation"],
+      ["paragon-school.webp", "The school community"],
+    ),
+  },
+  {
+    slug: "observing-days",
+    title: "Observing Days",
+    shortDescription: "Meaningful days that inspire awareness and action.",
+    description:
+      "Special assemblies and activities through which students learn, reflect and participate.",
+    cover: "/images/paragon-school.webp",
+    icon: Flag,
+    photos: photos(
+      ["paragon-school.webp", "Special day at Paragon School"],
+      ["smart_classes.webp", "Awareness session"],
+      ["library.webp", "Students learning together"],
+      ["auditorium.webp", "Special assembly"],
+    ),
+  },
+  {
+    slug: "sports-activities",
+    title: "Sports Activities",
+    shortDescription: "Energy, teamwork and sporting excellence.",
+    description:
+      "Capturing the determination, discipline and team spirit of our young sportspersons.",
+    cover: "/images/sports_day.webp",
+    icon: Medal,
+    photos: photos(
+      ["sports_day.webp", "Annual sports day"],
+      ["maths-park.webp", "Outdoor school activity"],
+      ["paragon-school.webp", "School grounds"],
+      ["award8.webp", "Sports achievement"],
+    ),
+  },
+  {
+    slug: "newspaper-coverage",
+    title: "Newspaper Coverage",
+    shortDescription: "Paragon stories featured in the press.",
+    description:
+      "News clippings and media moments highlighting milestones across the school community.",
+    cover: "/images/award1.webp",
+    icon: Newspaper,
+    photos: photos(
+      ["award1.webp", "School achievement in focus"],
+      ["award2.webp", "Paragon recognition"],
+      ["award3.webp", "Student success story"],
+      ["award4.webp", "Media recognition"],
+    ),
+  },
+  {
+    slug: "annual-function",
+    title: "Annual Function",
+    shortDescription: "An evening of talent, creativity and celebration.",
+    description:
+      "Memorable performances and proud moments from our annual cultural showcase.",
+    cover: "/images/auditorium.webp",
+    icon: MicVocal,
+    photos: photos(
+      ["auditorium.webp", "Annual function venue"],
+      ["music_room.webp", "Musical performance"],
+      ["art_room_1.webp", "Creative presentation"],
+      ["award5.webp", "Annual function honour"],
+    ),
+  },
+  {
+    slug: "talks-and-seminars",
+    title: "Talks & Seminars",
+    shortDescription: "Ideas, conversations and inspired learning.",
+    description:
+      "Interactive talks and seminars that connect students with knowledge beyond the classroom.",
+    cover: "/images/smart_classes.webp",
+    icon: BookOpen,
+    photos: photos(
+      ["smart_classes.webp", "Interactive seminar"],
+      ["auditorium.webp", "Guest talk"],
+      ["library.webp", "Learning session"],
+      ["lab.webp", "Practical workshop"],
+    ),
+  },
+  {
+    slug: "achievements",
+    title: "Achievements (Teachers & Students)",
+    shortDescription: "Celebrating our teachers and students.",
+    description:
+      "Honouring the awards, accomplishments and milestones of Paragon teachers and students.",
+    cover: "/images/award1.webp",
+    icon: Award,
+    photos: photos(
+      ["award1.webp", "Paragon award recipient"],
+      ["award2.webp", "Student achievement"],
+      ["award6.webp", "Excellence recognised"],
+      ["award9.webp", "Proud achievement"],
+      ["award10.webp", "Award ceremony"],
+      ["award7.webp", "Teachers and students honoured"],
+    ),
+  },
+  {
+    slug: "class-activities",
+    title: "Class Activities",
+    shortDescription: "Curious minds learning by doing.",
+    description:
+      "Engaging classroom experiences that make learning creative, practical and joyful.",
+    cover: "/images/smart_classes.webp",
+    icon: Camera,
+    photos: photos(
+      ["smart_classes.webp", "Smart classroom activity"],
+      ["art_room_1.webp", "Art class activity"],
+      ["lab.webp", "Learning in the laboratory"],
+      ["library.webp", "Library activity"],
+    ),
+  },
+  {
+    slug: "inter-house-activities",
+    title: "Inter House Activities",
+    shortDescription: "Healthy competition, leadership and house spirit.",
+    description:
+      "A glimpse of competitions that encourage confidence, collaboration and camaraderie.",
+    cover: "/images/sports_day.webp",
+    icon: LandPlot,
+    photos: photos(
+      ["sports_day.webp", "Inter-house sports"],
+      ["auditorium.webp", "Inter-house stage event"],
+      ["music_room.webp", "House music competition"],
+      ["award4.webp", "Competition winners"],
+    ),
+  },
+  {
+    slug: "field-trips",
+    title: "Field Trips",
+    shortDescription: "Learning beyond the school walls.",
+    description:
+      "Educational outings that turn real places and experiences into memorable lessons.",
+    cover: "/images/school_bus.webp",
+    icon: Bus,
+    photos: photos(
+      ["school_bus.webp", "Students set out on a field trip"],
+      ["solar-panels.webp", "Learning about solar energy"],
+      ["maths-park.webp", "Outdoor learning"],
+      ["paragon-school.webp", "Students gathering for a visit"],
+    ),
+  },
+  {
+    slug: "exhibitions",
+    title: "Exhibitions",
+    shortDescription: "Young ideas presented with confidence.",
+    description:
+      "Innovative models, artwork and projects created and presented by our students.",
+    cover: "/images/lab.webp",
+    icon: GalleryHorizontalEnd,
+    photos: photos(
+      ["lab.webp", "Science exhibition"],
+      ["art_room_1.webp", "Student artwork"],
+      ["solar-panels.webp", "Sustainability model"],
+      ["maths-park.webp", "Mathematics exhibit"],
+    ),
+  },
+  {
+    slug: "trips-and-excursions",
+    title: "Trips & Excursions",
+    shortDescription: "Exploration, friendship and lasting memories.",
+    description:
+      "Moments from journeys that help students discover new places, perspectives and friendships.",
+    cover: "/images/paragon-school.webp",
+    icon: TentTree,
+    photos: photos(
+      ["school_bus.webp", "Beginning a school excursion"],
+      ["paragon-school.webp", "Students ready for their trip"],
+      ["sports_day.webp", "Friends enjoying time together"],
+      ["solar-panels.webp", "Educational excursion"],
+    ),
+  },
+];
+export const getGalleryCategory = (slug?: string) =>
+  galleryCategories.find((category) => category.slug === slug);
