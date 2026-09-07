@@ -603,7 +603,7 @@ export function KidsGalleryCategoryPage() {
                             src={photo.src}
                             alt={photo.alt}
                             loading={albumIndex === 0 && index < 2 ? "eager" : "lazy"}
-                            className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.055]"
+                            className="size-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.055]"
                           />
 
                           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#34305c]/80 via-[#34305c]/0 to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />

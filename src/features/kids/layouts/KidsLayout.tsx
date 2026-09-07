@@ -746,7 +746,7 @@ export function KidsLayout() {
 
               {/* DISCLOSURE */}
 
-              <NavLink
+              {/* <NavLink
                 to="/kids/mandatory-disclosure"
                 className={({ isActive }) =>
                   `
@@ -770,10 +770,10 @@ export function KidsLayout() {
                   `
                 }
               >
-                Disclosure
+                 Disclosure
 
                 <ArrowUpRight size={14} />
-              </NavLink>
+              </NavLink> */}
 
             </nav>
 

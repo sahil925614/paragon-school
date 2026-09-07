@@ -1,166 +1,295 @@
 import { useQuery } from "@tanstack/react-query";
-import { Camera, Globe2, Images } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  ImageOff,
+  Images,
+  Sparkles,
+  X,
+} from "lucide-react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import { KidsPageBanner } from "../components/KidsPageBanner";
 import { kidsApi } from "../api/kidsApi";
-import { applyPageSeo, type PageSeo } from "../../school/utils/pageSeo";
+import {
+  applyPageSeo,
+  type PageSeo,
+} from "../../school/utils/pageSeo";
 
+/* =========================================================
+   TYPES
+========================================================= */
 
+type ActivityImage = {
+  image?: string | null;
+  image_url?: string | null;
+};
 
+type ActivityCard = {
+  title?: string | null;
+  description?: string | null;
+  images?: ActivityImage[];
+};
 
-type ActivityImage = { image?: string; image_url?: string };
-type ActivityCard = { title?: string; description?: string | null; images?: ActivityImage[] };
-type ActivitySettings = { cards?: ActivityCard[] };
+type ActivitySettings = {
+  cards?: ActivityCard[];
+};
+
 type ActivitySection = {
   type: string;
-  title?: string;
+  title?: string | null;
   description?: string | null;
   is_active: boolean;
   settings?: ActivitySettings | [];
 };
-type ActivitiesPageData = { title: string; seo?: PageSeo; sections: ActivitySection[] };
-type DisplayActivity = { title: string; description: string; images: string[] };
 
-const storageBaseUrl = "https://lightskyblue-eland-620788.hostingersite.com/storage/";
-function mediaUrl(image?: string, imageUrl?: string) {
-  if (image) return `${storageBaseUrl}${image.replace(/^\/+/, "")}`;
-  if (imageUrl && !imageUrl.includes("localhost")) return imageUrl;
-  return undefined;
-}
-function plainText(html?: string | null) {
-  return html?.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim() || "";
-}
-const classShowImages = [
-  "/images/14.webp",
-  "/images/15.webp",
-  "/images/16.webp",
-  "/images/1 (1).webp",
-  "/images/2 (1).webp",
-  "/images/3 (1).webp",
-  "/images/4.webp",
-  "/images/5.webp",
-  "/images/6.webp",
-  "/images/7.webp",
-  "/images/8.webp",
-  "/images/9.webp",
-  "/images/10.webp",
-  "/images/11.webp",
-  "/images/12.webp",
-  "/images/13.webp",
-];
+type ActivitiesPageData = {
+  title: string;
+  seo?: PageSeo;
+  sections: ActivitySection[];
+};
 
+type DisplayActivity = {
+  title: string;
+  description: string;
+  images: string[];
+};
 
 /* =========================================================
-   SCROLL REVEAL
+   CONFIG
 ========================================================= */
 
-function Reveal({
-  children,
-  className = "",
-  delay = 0,
-  direction = "up",
-}: {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-  direction?: "up" | "left" | "right" | "scale";
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+const storageBaseUrl =
+  "https://lightskyblue-eland-620788.hostingersite.com/storage/";
 
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
+const activityThemes = [
+  {
+    accent: "#ef5f6c",
+    soft: "#fff2f4",
+  },
+  {
+    accent: "#37a9df",
+    soft: "#eef9fe",
+  },
+  {
+    accent: "#20a98b",
+    soft: "#eefaf7",
+  },
+  {
+    accent: "#e7aa26",
+    soft: "#fff8e7",
+  },
+];
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.unobserve(node);
-        }
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -60px 0px" },
-    );
+/* =========================================================
+   HELPERS
+========================================================= */
 
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
+function mediaUrl(
+  image?: string | null,
+  imageUrl?: string | null
+): string | undefined {
+  /*
+   * Prefer the complete URL returned by API.
+   */
+  if (
+    imageUrl &&
+    !imageUrl.includes("localhost") &&
+    /^https?:\/\//i.test(imageUrl)
+  ) {
+    return imageUrl;
+  }
 
-  const hidden =
-    direction === "left"
-      ? "-translate-x-12 opacity-0"
-      : direction === "right"
-        ? "translate-x-12 opacity-0"
-        : direction === "scale"
-          ? "translate-y-5 scale-[.94] opacity-0"
-          : "translate-y-12 opacity-0";
+  /*
+   * Build URL from storage path.
+   */
+  if (image) {
+    if (/^https?:\/\//i.test(image)) {
+      return image;
+    }
 
-  return (
-    <div
-      ref={ref}
-      className={`kids-activity-reveal transition-all duration-[900ms] ease-[cubic-bezier(.2,.8,.2,1)] ${
-        visible ? "translate-x-0 translate-y-0 scale-100 opacity-100" : hidden
-      } ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
-    </div>
-  );
+    return `${storageBaseUrl}${image.replace(/^\/+/, "")}`;
+  }
+
+  if (
+    imageUrl &&
+    !imageUrl.includes("localhost")
+  ) {
+    return imageUrl;
+  }
+
+  return undefined;
 }
 
+function plainText(
+  html?: string | null
+): string {
+  if (!html) return "";
+
+  return html
+    .replace(/<br\s*\/?\s*>/gi, " ")
+    .replace(/<\/p>/gi, " ")
+    .replace(/<\/li>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#039;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/* =========================================================
+   MAIN PAGE
+========================================================= */
+
 export function KidsActivitiesPage() {
-  const { data: activitiesPage } = useQuery({
-    queryKey: ["kids-page", "activities"],
+  const {
+    data: activitiesPage,
+    isLoading,
+  } = useQuery({
+    queryKey: [
+      "kids-page",
+      "activities",
+    ],
+
     queryFn: async () => {
-      const response = await kidsApi.get<{ data: ActivitiesPageData }>("pages/activities");
+      const response =
+        await kidsApi.get<{
+          data: ActivitiesPageData;
+        }>("pages/activities");
+
       return response.data.data;
     },
   });
-  const banner = activitiesPage?.sections.find((section) => section.type === "home_banner" && section.is_active);
-  const contentSection = activitiesPage?.sections.find((section) => section.type === "activity_cards_content" && section.is_active);
-  const settings = contentSection?.settings && !Array.isArray(contentSection.settings) ? contentSection.settings : undefined;
-  const apiActivities: DisplayActivity[] = (settings?.cards ?? []).map((card, index) => ({
-    title: plainText(card.title) || `Activity ${index + 1}`,
-    description: plainText(card.description),
-    images: (card.images ?? []).map((image) => mediaUrl(image.image, image.image_url)).filter((image): image is string => Boolean(image)),
-  })).filter((activity) => activity.images.length > 0);
-  const activities: DisplayActivity[] = apiActivities.length ? apiActivities : [{
-    title: "Class Show",
-    description: "Our KG 2 students took an exciting journey across the globe with their class show themed Around the World.",
-    images: classShowImages,
-  }];
+
+  /* ---------------------------------------------------------
+     API SECTIONS
+  --------------------------------------------------------- */
+
+  const banner =
+    activitiesPage?.sections.find(
+      (section) =>
+        section.type ===
+          "home_banner" &&
+        section.is_active
+    );
+
+  const contentSection =
+    activitiesPage?.sections.find(
+      (section) =>
+        section.type ===
+          "activity_cards_content" &&
+        section.is_active
+    );
+
+  const settings =
+    contentSection?.settings &&
+    !Array.isArray(
+      contentSection.settings
+    )
+      ? contentSection.settings
+      : undefined;
+
+  /* ---------------------------------------------------------
+     NORMALIZE API ACTIVITIES
+  --------------------------------------------------------- */
+
+  const activities: DisplayActivity[] =
+    (settings?.cards ?? [])
+      .map((card, index) => {
+        const images = (
+          card.images ?? []
+        )
+          .map((item) =>
+            mediaUrl(
+              item.image,
+              item.image_url
+            )
+          )
+          .filter(
+            (
+              image
+            ): image is string =>
+              Boolean(image)
+          );
+
+        return {
+          title:
+            plainText(card.title) ||
+            `Activity ${index + 1}`,
+
+          description: plainText(
+            card.description
+          ),
+
+          images,
+        };
+      })
+      .filter(
+        (activity) =>
+          activity.title ||
+          activity.description ||
+          activity.images.length
+      );
+
+  /* ---------------------------------------------------------
+     SEO
+  --------------------------------------------------------- */
 
   useEffect(() => {
-    applyPageSeo(activitiesPage?.seo);
+    applyPageSeo(
+      activitiesPage?.seo
+    );
   }, [activitiesPage]);
 
   return (
     <>
       {/* =====================================================
-          PAGE BANNER
-      ====================================================== */}
+          EXISTING KIDS BANNER
+      ===================================================== */}
 
       <KidsPageBanner
-        title={banner?.title || activitiesPage?.title || "Activities"}
-        description={plainText(banner?.description) || "Art, music, movement and discovery help little learners express and connect."}
+        title={
+          banner?.title ||
+          activitiesPage?.title ||
+          "Activities"
+        }
+        description={
+          plainText(
+            banner?.description
+          ) ||
+          "Art, music, movement and discovery help little learners express and connect."
+        }
       />
 
-      <main className="relative overflow-hidden bg-[#fffdf8]">
-        {/* =====================================================
-            BACKGROUND DECORATIONS
-        ====================================================== */}
+      {/* =====================================================
+          PAGE CONTENT
+      ===================================================== */}
+
+      <main
+        className="
+          relative
+          overflow-hidden
+          bg-[#fffdfa]
+        "
+      >
+        {/* subtle background decorations */}
 
         <div
           aria-hidden="true"
           className="
             pointer-events-none
             absolute
-            -left-36
-            top-20
-            size-[330px]
+            -left-40
+            top-32
+            size-[320px]
             rounded-full
-            border-[52px]
-            border-[#37a9df]/[.055]
+            bg-[#37a9df]/[.035]
           "
         />
 
@@ -169,12 +298,11 @@ export function KidsActivitiesPage() {
           className="
             pointer-events-none
             absolute
-            -right-40
-            top-[36%]
+            -right-44
+            top-[42%]
             size-[360px]
             rounded-full
-            border-[58px]
-            border-[#ffd34e]/[.08]
+            bg-[#ffd34e]/[.05]
           "
         />
 
@@ -185,43 +313,35 @@ export function KidsActivitiesPage() {
             absolute
             -left-40
             bottom-32
-            size-[320px]
+            size-[300px]
             rounded-full
-            border-[50px]
-            border-[#ef5f6c]/[.045]
+            bg-[#ef5f6c]/[.025]
           "
         />
 
-        <FloatingDot
-          className="left-[7%] top-[7%]"
-          color="#ef5f6c"
-          delay="0s"
-        />
+        {/* ===================================================
+            INTRODUCTION
+        =================================================== */}
 
-        <FloatingDot
-          className="right-[9%] top-[12%]"
-          color="#37a9df"
-          delay=".7s"
-        />
-
-        <FloatingDot
-          className="left-[5%] top-[52%]"
-          color="#ffd34e"
-          delay="1.2s"
-        />
-
-        <FloatingDot
-          className="right-[6%] bottom-[12%]"
-          color="#20a98b"
-          delay=".4s"
-        />
-
-        {/* =====================================================
-            INTRO
-        ====================================================== */}
-
-        <section className="container relative pb-10 pt-14 sm:pb-12 sm:pt-16 lg:pt-20">
-          <Reveal className="mx-auto max-w-3xl text-center" direction="scale">
+        <section
+          className="
+            container
+            relative
+            pb-10
+            pt-12
+            sm:pb-12
+            sm:pt-16
+            lg:pb-14
+            lg:pt-20
+          "
+        >
+          <div
+            className="
+              mx-auto
+              max-w-3xl
+              text-center
+            "
+          >
             <div
               className="
                 inline-flex
@@ -230,23 +350,27 @@ export function KidsActivitiesPage() {
                 rounded-full
                 border
                 border-[#ef5f6c]/15
-                bg-[#fff1f3]
+                bg-[#fff3f5]
                 px-4
                 py-2
               "
             >
-             
+              {/* <Sparkles
+                size={14}
+                className="text-[#ef5f6c]"
+              /> */}
 
               <span
                 className="
                   text-[10px]
-                  font-black
+                  font-extrabold
                   uppercase
-                  tracking-[.2em]
+                  tracking-[.18em]
                   text-[#ef5f6c]
                 "
               >
-                {contentSection?.title || "Activities at Paragon Kids"}
+                {contentSection?.title ||
+                  "Activities at Paragon Kids"}
               </span>
             </div>
 
@@ -254,636 +378,1297 @@ export function KidsActivitiesPage() {
               className="
                 mt-5
                 font-serif
-                text-4xl
+                text-[34px]
                 font-bold
-                leading-tight
+                leading-[1.12]
+                tracking-[-.02em]
                 text-[#34305c]
-                sm:text-5xl
-                lg:text-[54px]
+                sm:text-[42px]
+                lg:text-[48px]
               "
             >
-              <span className="relative inline-block text-[#37a9df]">{plainText(contentSection?.description) || "Learning Through Happy Moments"}<HandUnderline /></span>
+              Learning Through{" "}
+              <span className="text-[#37a9df]">
+                Happy Experiences
+              </span>
             </h2>
 
-            <div className="mx-auto mt-8 flex w-28 gap-1.5">
-              <span className="h-1.5 flex-1 rounded-full bg-[#ef5f6c]" />
-              <span className="h-1.5 flex-1 rounded-full bg-[#ffd34e]" />
-              <span className="h-1.5 flex-1 rounded-full bg-[#20a98b]" />
-              <span className="h-1.5 flex-1 rounded-full bg-[#37a9df]" />
-            </div>
-          </Reveal>
-        </section>
+            {contentSection
+              ?.description && (
+              <p
+                className="
+                  mx-auto
+                  mt-4
+                  max-w-2xl
+                  text-sm
+                  leading-7
+                  text-[#706c7c]
+                  sm:text-[15px]
+                "
+              >
+                {plainText(
+                  contentSection.description
+                )}
+              </p>
+            )}
 
-       
+            {/* Brand strip */}
 
-        {activities.map((activity, activityIndex) => (
-        <section key={`${activity.title}-${activityIndex}`} className="container relative pb-20 sm:pb-24">
-          <div className="mx-auto max-w-[1180px]">
-            {/* EVENT HEADING */}
-
-            <Reveal
-              direction="left"
+            <div
+              aria-hidden="true"
               className="
-                mb-8
+                mx-auto
+                mt-7
                 flex
-                flex-col
-                gap-5
-                sm:flex-row
-                sm:items-end
-                sm:justify-between
+                w-24
+                gap-1
               "
             >
-              <div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className="
-                      grid
-                      size-11
-                      place-items-center
-                      rounded-2xl
-                      bg-[#fff2c9]
-                      text-[#e7a719]
-                    "
-                  >
-                    <Globe2 size={21} />
-                  </span>
+              <span className="h-1 flex-1 rounded-full bg-[#ef5f6c]" />
+              <span className="h-1 flex-1 rounded-full bg-[#ffd34e]" />
+              <span className="h-1 flex-1 rounded-full bg-[#20a98b]" />
+              <span className="h-1 flex-1 rounded-full bg-[#37a9df]" />
+            </div>
+          </div>
+        </section>
 
-                  <span
-                    className="
-                      text-[10px]
-                      font-black
-                      uppercase
-                      tracking-[.2em]
-                      text-[#20a98b]
-                    "
-                  >
-                    {activity.title}
-                  </span>
+        {/* ===================================================
+            LOADING
+        =================================================== */}
+
+        {isLoading && (
+          <section
+            className="
+              container
+              pb-20
+            "
+          >
+            <ActivitiesSkeleton />
+          </section>
+        )}
+
+        {/* ===================================================
+            ACTIVITIES
+        =================================================== */}
+
+        {!isLoading &&
+          activities.length > 0 && (
+            <div>
+              {activities.map(
+                (
+                  activity,
+                  index
+                ) => (
+                  <ActivitySectionBlock
+                    key={`${activity.title}-${index}`}
+                    activity={
+                      activity
+                    }
+                    index={index}
+                  />
+                )
+              )}
+            </div>
+          )}
+
+        {/* ===================================================
+            EMPTY STATE
+        =================================================== */}
+
+        {!isLoading &&
+          activities.length === 0 && (
+            <section
+              className="
+                container
+                pb-20
+              "
+            >
+              <div
+                className="
+                  mx-auto
+                  max-w-lg
+                  rounded-[26px]
+                  border
+                  border-[#34305c]/10
+                  bg-white
+                  px-6
+                  py-14
+                  text-center
+                  shadow-[0_20px_60px_-40px_rgba(52,48,92,.35)]
+                "
+              >
+                <div
+                  className="
+                    mx-auto
+                    grid
+                    size-14
+                    place-items-center
+                    rounded-2xl
+                    bg-[#fff2f4]
+                    text-[#ef5f6c]
+                  "
+                >
+                  <Images size={24} />
                 </div>
 
                 <h3
                   className="
-                    mt-4
+                    mt-5
                     font-serif
-                    text-3xl
+                    text-2xl
                     font-bold
                     text-[#34305c]
-                    sm:text-4xl
                   "
                 >
-                  {activity.title}
+                  Activities coming
+                  soon
                 </h3>
-              </div>
-
-              <div
-                className="
-                  inline-flex
-                  w-fit
-                  items-center
-                  gap-2
-                  rounded-full
-                  border
-                  border-[#34305c]/[.08]
-                  bg-white
-                  px-4
-                  py-2
-                  text-xs
-                  font-bold
-                  text-[#706c7c]
-                  shadow-sm
-                "
-              >
-                <Images size={15} className="text-[#ef5f6c]" />
-                {activity.title} Memories
-              </div>
-            </Reveal>
-
-            {/* =================================================
-                FEATURED COLLAGE
-            ================================================== */}
-
-            <Reveal
-              direction="scale"
-              className="
-                grid
-                gap-4
-                lg:grid-cols-[1.35fr_.65fr]
-              "
-            >
-              {/* LARGE FEATURE IMAGE */}
-
-              <div
-                className="
-                  group
-                  relative
-                  min-h-[340px]
-                  overflow-hidden
-                  rounded-[30px]
-                  bg-[#34305c]
-                  shadow-[0_25px_70px_-38px_rgba(52,48,92,.55)]
-                  sm:min-h-[450px]
-                  lg:min-h-[540px]
-                "
-              >
-                <img
-                  src={activity.images[0]}
-                  alt={activity.title}
-                  className="
-                    absolute
-                    inset-0
-                    size-full
-                    object-cover
-                    transition-transform
-                    duration-700
-                    group-hover:scale-[1.04]
-                  "
-                />
-
-                <div
-                  className="
-                    absolute
-                    inset-0
-                    bg-gradient-to-t
-                    from-[#34305c]/80
-                    via-[#34305c]/10
-                    to-transparent
-                  "
-                />
-
-                {/* Number */}
-
-                <span
-                  className="
-                    absolute
-                    left-5
-                    top-5
-                    rounded-full
-                    border
-                    border-white/30
-                    bg-white/90
-                    px-4
-                    py-2
-                    text-[10px]
-                    font-black
-                    tracking-[.16em]
-                    text-[#ef5f6c]
-                    backdrop-blur
-                  "
-                >
-                  01
-                </span>
-
-                {/* Bottom text */}
-
-                <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
-                  <span
-                    className="
-                      mb-4
-                      grid
-                      size-12
-                      place-items-center
-                      rounded-2xl
-                      bg-[#ef5f6c]
-                      text-white
-                      shadow-lg
-                      [animation:kidsActivityWiggle_3.8s_ease-in-out_infinite]
-                    "
-                  >
-                    <Camera size={21} />
-                  </span>
-
-                  <p
-                    className="
-                      text-[10px]
-                      font-black
-                      uppercase
-                      tracking-[.2em]
-                      text-[#ffd34e]
-                    "
-                  >
-                    Paragon Kids
-                  </p>
-
-                  <h4
-                    className="
-                      mt-2
-                      font-serif
-                      text-3xl
-                      font-bold
-                      text-white
-                      sm:text-4xl
-                    "
-                  >
-                    {activity.title}
-                  </h4>
-                </div>
-              </div>
-
-              {/* RIGHT COLLAGE */}
-
-              <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
-                {activity.images.slice(1, 3).map((image, index) => (
-                  <PhotoCard
-                    key={image}
-                    image={image}
-                    number={index + 2}
-                    title={activity.title}
-                  />
-                ))}
-              </div>
-            </Reveal>
-
-            {/* =================================================
-                STORY CONTENT
-            ================================================== */}
-
-            <Reveal
-              direction="right"
-              delay={100}
-              className="
-                relative
-                mx-auto
-                -mt-1
-                max-w-[1050px]
-                overflow-hidden
-                rounded-b-[30px]
-                border-x
-                border-b
-                border-[#34305c]/[.07]
-                bg-white
-                px-6
-                py-8
-                shadow-[0_25px_60px_-45px_rgba(52,48,92,.4)]
-                sm:px-9
-                sm:py-9
-                lg:px-12
-              "
-            >
-              {/* Colored top line */}
-
-            
-
-              <div
-                className="
-                  grid
-                  gap-6
-                  md:grid-cols-[180px_1fr]
-                  md:items-start
-                "
-              >
-                <div>
-                  <p
-                    className="
-                      text-[10px]
-                      font-black
-                      uppercase
-                      tracking-[.2em]
-                      text-[#ef5f6c]
-                    "
-                  >
-                  {activity.title}
-                  </p>
-
-                  <p
-                    className="
-                      mt-2
-                      font-serif
-                      text-2xl
-                      font-bold
-                      leading-tight
-                      text-[#34305c]
-                    "
-                  >
-                    {activity.title}
-
-                  </p>
-                </div>
 
                 <p
                   className="
-                    text-[15px]
-                    leading-7
-                    text-[#686477]
+                    mt-2
+                    text-sm
+                    leading-6
+                    text-[#706c7c]
                   "
                 >
-                  {activity.description}
-
+                  New activities and
+                  memorable moments
+                  will appear here.
                 </p>
               </div>
-            </Reveal>
-
-            {/* =================================================
-                MORE MEMORIES
-            ================================================== */}
-
-            {activity.images.length > 3 && (
-              <div className="mt-14 sm:mt-16">
-                <Reveal className="mb-7 flex items-center gap-4" direction="left">
-                  <div>
-                    <p
-                      className="
-                        text-[10px]
-                        font-black
-                        uppercase
-                        tracking-[.2em]
-                        text-[#37a9df]
-                      "
-                    >
-                      Photo Memories
-                    </p>
-
-                    <h3
-                      className="
-                        mt-1
-                        font-serif
-                        text-2xl
-                        font-bold
-                        text-[#34305c]
-                        sm:text-3xl
-                      "
-                    >
-                      More From {activity.title}
-                    </h3>
-                  </div>
-
-                  <div className="h-px flex-1 bg-[#34305c]/10" />
-                </Reveal>
-
-                {/* Creative masonry-like grid */}
-
-                <div
-                  className="
-                    grid
-                    grid-cols-2
-                    gap-3
-                    sm:gap-4
-                    md:grid-cols-3
-                    lg:grid-cols-4
-                  "
-                >
-                  {activity.images.slice(3).map((image, index) => {
-                    const realIndex = index + 3;
-
-                    const large =
-                      realIndex === 4 ||
-                      realIndex === 9;
-
-                    return (
-                      <Reveal
-                        key={`${image}-${realIndex}`}
-                        delay={(index % 4) * 90}
-                        direction={index % 2 === 0 ? "up" : "scale"}
-                      >
-                        <div
-                          className={`
-                          group
-                          relative
-                          overflow-hidden
-                          rounded-[20px]
-                          bg-[#eee]
-                          shadow-[0_18px_45px_-30px_rgba(52,48,92,.45)]
-                          ${
-                            large
-                              ? "md:col-span-2"
-                              : ""
-                          }
-                        `}
-                      >
-                        <div
-                          className={
-                            large
-                              ? "aspect-[16/8]"
-                              : "aspect-[4/3]"
-                          }
-                        >
-                          <img
-                            src={image}
-                            alt={`${activity.title} photograph ${realIndex + 1}`}
-                            loading="lazy"
-                            className="
-                              size-full
-                              object-cover
-                              transition-transform
-                              duration-700
-                              group-hover:scale-[1.08]
-                            "
-                          />
-                        </div>
-
-                        <div
-                          className="
-                            pointer-events-none
-                            absolute
-                            inset-0
-                            bg-gradient-to-t
-                            from-[#34305c]/35
-                            via-transparent
-                            to-transparent
-                            opacity-0
-                            transition-opacity
-                            duration-300
-                            group-hover:opacity-100
-                          "
-                        />
-
-                        <span
-                          className="
-                            absolute
-                            bottom-3
-                            right-3
-                            grid
-                            size-8
-                            translate-y-2
-                            place-items-center
-                            rounded-full
-                            bg-white/90
-                            text-[9px]
-                            font-black
-                            text-[#34305c]
-                            opacity-0
-                            shadow
-                            backdrop-blur
-                            transition-all
-                            duration-300
-                            group-hover:translate-y-0
-                            group-hover:opacity-100
-                          "
-                        >
-                          {String(realIndex + 1).padStart(2, "0")}
-                        </span>
-                        </div>
-                      </Reveal>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-        ))}
+            </section>
+          )}
       </main>
-
-      <style>{`
-        @keyframes kidsActivityFloat {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-12px) rotate(5deg); }
-        }
-
-        @keyframes kidsActivityWiggle {
-          0%, 100% { transform: rotate(0deg) translateY(0); }
-          25% { transform: rotate(-5deg) translateY(-2px); }
-          50% { transform: rotate(3deg) translateY(-5px); }
-          75% { transform: rotate(-2deg) translateY(-2px); }
-        }
-
-        @keyframes kidsActivityPulse {
-          0%, 100% { transform: scale(1); opacity: .4; }
-          50% { transform: scale(1.35); opacity: .75; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .kids-activity-reveal {
-            transition: none !important;
-            transform: none !important;
-            opacity: 1 !important;
-          }
-        }
-      `}</style>
     </>
   );
 }
 
 /* =========================================================
-   PHOTO CARD
+   SINGLE ACTIVITY SECTION
 ========================================================= */
 
-function PhotoCard({
-  image,
-  number,
-  title,
+function ActivitySectionBlock({
+  activity,
+  index,
 }: {
-  image: string;
-  number: number;
-  title: string;
+  activity: DisplayActivity;
+  index: number;
+}) {
+  const theme =
+    activityThemes[
+      index %
+        activityThemes.length
+    ];
+
+  return (
+    <section
+      className="
+        container
+        relative
+        pb-16
+        sm:pb-20
+        lg:pb-24
+      "
+    >
+      <div
+        className="
+          mx-auto
+          max-w-[1240px]
+        "
+      >
+        {/* =================================================
+            ACTIVITY HEADER
+        ================================================== */}
+
+        <div
+          className="
+            mb-7
+            flex
+            flex-col
+            gap-4
+            border-b
+            border-[#34305c]/[.08]
+            pb-6
+            sm:mb-8
+            sm:flex-row
+            sm:items-end
+            sm:justify-between
+          "
+        >
+          <div className="max-w-3xl">
+            <div
+              className="
+                flex
+                items-center
+                gap-3
+              "
+            >
+              <span
+                className="
+                  grid
+                  size-9
+                  place-items-center
+                  rounded-xl
+                "
+                style={{
+                  backgroundColor:
+                    theme.soft,
+                  color:
+                    theme.accent,
+                }}
+              >
+                <Camera
+                  size={17}
+                />
+              </span>
+
+              <span
+                className="
+                  text-[10px]
+                  font-extrabold
+                  uppercase
+                  tracking-[.18em]
+                "
+                style={{
+                  color:
+                    theme.accent,
+                }}
+              >
+                Paragon Kids
+                Activity
+              </span>
+            </div>
+
+            <h3
+              className="
+                mt-4
+                font-serif
+                text-[29px]
+                font-bold
+                leading-[1.15]
+                tracking-[-.015em]
+                text-[#34305c]
+                sm:text-[36px]
+                lg:text-[40px]
+              "
+            >
+              {activity.title}
+            </h3>
+          </div>
+
+          {activity.images.length >
+            0 && (
+            <div
+              className="
+                inline-flex
+                w-fit
+                items-center
+                gap-2
+                rounded-full
+                border
+                border-[#34305c]/[.08]
+                bg-white
+                px-4
+                py-2.5
+                text-xs
+                font-bold
+                text-[#716d7e]
+                shadow-sm
+              "
+            >
+              <Images
+                size={15}
+                style={{
+                  color:
+                    theme.accent,
+                }}
+              />
+
+              {activity.images.length}{" "}
+              {activity.images
+                .length === 1
+                ? "Photo"
+                : "Photos"}
+            </div>
+          )}
+        </div>
+
+        {/* =================================================
+            FEATURE AREA
+        ================================================== */}
+
+        <div
+          className={`
+            grid
+            gap-6
+            ${
+              activity.images.length >
+              0
+                ? "lg:grid-cols-[minmax(0,1.12fr)_minmax(320px,.88fr)] lg:items-stretch"
+                : ""
+            }
+          `}
+        >
+          {/* =================================================
+              FEATURE IMAGE
+          ================================================== */}
+
+          {activity.images.length >
+            0 && (
+            <ActivityPhoto
+              src={
+                activity.images[0]
+              }
+              alt={activity.title}
+              index={0}
+              accent={
+                theme.accent
+              }
+              featured
+              onClick={() => {
+                window.dispatchEvent(
+                  new CustomEvent(
+                    "open-activity-gallery",
+                    {
+                      detail: {
+                        images:
+                          activity.images,
+                        index: 0,
+                        title:
+                          activity.title,
+                      },
+                    }
+                  )
+                );
+              }}
+            />
+          )}
+
+          {/* =================================================
+              DESCRIPTION
+          ================================================== */}
+
+          <div
+            className="
+              relative
+              flex
+              flex-col
+              justify-center
+              overflow-hidden
+              rounded-[26px]
+              border
+              border-[#34305c]/[.08]
+              bg-white
+              p-6
+              shadow-[0_20px_60px_-42px_rgba(52,48,92,.35)]
+              sm:p-8
+              lg:p-9
+            "
+          >
+            <div
+              aria-hidden="true"
+              className="
+                absolute
+                -right-12
+                -top-12
+                size-36
+                rounded-full
+                opacity-[.55]
+              "
+              style={{
+                backgroundColor:
+                  theme.soft,
+              }}
+            />
+
+            <div className="relative">
+              <span
+                className="
+                  text-[10px]
+                  font-extrabold
+                  uppercase
+                  tracking-[.18em]
+                "
+                style={{
+                  color:
+                    theme.accent,
+                }}
+              >
+                About the Activity
+              </span>
+
+              <h4
+                className="
+                  mt-3
+                  font-serif
+                  text-[25px]
+                  font-bold
+                  leading-tight
+                  text-[#34305c]
+                  sm:text-[29px]
+                "
+              >
+                {activity.title}
+              </h4>
+
+              {activity.description ? (
+                <p
+                  className="
+                    mt-5
+                    text-[14px]
+                    leading-7
+                    text-[#686477]
+                    sm:text-[15px]
+                    sm:leading-8
+                  "
+                >
+                  {
+                    activity.description
+                  }
+                </p>
+              ) : (
+                <p
+                  className="
+                    mt-5
+                    text-sm
+                    leading-7
+                    text-[#85818e]
+                  "
+                >
+                  Explore memorable
+                  moments from this
+                  activity at Paragon
+                  Kids.
+                </p>
+              )}
+
+              {activity.images.length >
+                1 && (
+                <div
+                  className="
+                    mt-7
+                    flex
+                    items-center
+                    gap-3
+                    border-t
+                    border-[#34305c]/[.07]
+                    pt-5
+                  "
+                >
+                  <span
+                    className="
+                      grid
+                      size-9
+                      place-items-center
+                      rounded-xl
+                    "
+                    style={{
+                      backgroundColor:
+                        theme.soft,
+                      color:
+                        theme.accent,
+                    }}
+                  >
+                    <Images
+                      size={16}
+                    />
+                  </span>
+
+                  <span
+                    className="
+                      text-xs
+                      font-bold
+                      text-[#777382]
+                    "
+                  >
+                    Discover all{" "}
+                    {
+                      activity.images
+                        .length
+                    }{" "}
+                    memories below
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* =================================================
+            REMAINING PHOTOS
+        ================================================== */}
+
+        {activity.images.length >
+          1 && (
+          <ActivityPhotoGrid
+            activity={activity}
+            accent={
+              theme.accent
+            }
+            soft={theme.soft}
+          />
+        )}
+      </div>
+
+      <ActivityLightboxListener />
+    </section>
+  );
+}
+
+/* =========================================================
+   REMAINING PHOTO GRID
+========================================================= */
+
+function ActivityPhotoGrid({
+  activity,
+  accent,
+  soft,
+}: {
+  activity: DisplayActivity;
+  accent: string;
+  soft: string;
 }) {
   return (
     <div
       className="
-        group
-        relative
-        min-h-[190px]
-        overflow-hidden
-        rounded-[25px]
-        bg-[#eee]
-        sm:min-h-[220px]
-        lg:min-h-0
+        mt-8
+        sm:mt-10
       "
     >
-      <img
-        src={image}
-        alt={`${title} photograph ${number}`}
+      <div
         className="
-          absolute
-          inset-0
-          size-full
-          object-cover
-          transition-transform
-          duration-700
-          group-hover:scale-[1.07]
+          mb-5
+          flex
+          items-center
+          gap-4
         "
-      />
+      >
+        <div>
+          <p
+            className="
+              text-[9px]
+              font-extrabold
+              uppercase
+              tracking-[.18em]
+            "
+            style={{
+              color: accent,
+            }}
+          >
+            Photo Memories
+          </p>
+
+          <h4
+            className="
+              mt-1
+              font-serif
+              text-xl
+              font-bold
+              text-[#34305c]
+              sm:text-2xl
+            "
+          >
+            More From{" "}
+            {activity.title}
+          </h4>
+        </div>
+
+        <div
+          className="
+            hidden
+            h-px
+            flex-1
+            bg-[#34305c]/[.08]
+            sm:block
+          "
+        />
+      </div>
 
       <div
         className="
-          absolute
-          inset-0
-          bg-gradient-to-t
-          from-[#34305c]/35
-          to-transparent
-        "
-      />
-
-      <span
-        className="
-          absolute
-          bottom-4
-          right-4
           grid
-          size-9
-          place-items-center
-          rounded-full
-          bg-white/90
-          text-[10px]
-          font-black
-          text-[#34305c]
-          shadow
-          backdrop-blur
+          grid-cols-2
+          gap-3
+          sm:gap-4
+          md:grid-cols-3
+          lg:grid-cols-4
         "
       >
-        {String(number).padStart(2, "0")}
-      </span>
+        {activity.images
+          .slice(1)
+          .map(
+            (
+              image,
+              imageIndex
+            ) => {
+              const actualIndex =
+                imageIndex + 1;
+
+              return (
+                <ActivityPhoto
+                  key={`${image}-${actualIndex}`}
+                  src={image}
+                  alt={`${activity.title} photograph ${
+                    actualIndex +
+                    1
+                  }`}
+                  index={
+                    actualIndex
+                  }
+                  accent={
+                    accent
+                  }
+                  soft={soft}
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent(
+                        "open-activity-gallery",
+                        {
+                          detail: {
+                            images:
+                              activity.images,
+                            index:
+                              actualIndex,
+                            title:
+                              activity.title,
+                          },
+                        }
+                      )
+                    );
+                  }}
+                />
+              );
+            }
+          )}
+      </div>
     </div>
   );
 }
 
 /* =========================================================
-   FLOATING DOT
+   PHOTO
 ========================================================= */
 
-function FloatingDot({
-  className,
-  color,
-  delay,
+function ActivityPhoto({
+  src,
+  alt,
+  index,
+  accent,
+  soft = "#f5f4f2",
+  featured = false,
+  onClick,
 }: {
-  className: string;
-  color: string;
-  delay: string;
+  src: string;
+  alt: string;
+  index: number;
+  accent: string;
+  soft?: string;
+  featured?: boolean;
+  onClick?: () => void;
 }) {
+  const [failed, setFailed] =
+    useState(false);
+
   return (
-    <span
-      aria-hidden="true"
+    <button
+      type="button"
+      onClick={onClick}
       className={`
-        pointer-events-none
-        absolute
-        size-3
-        rounded-full
-        opacity-40
-        ${className}
+        group
+        relative
+        block
+        w-full
+        overflow-hidden
+        border
+        border-[#34305c]/[.08]
+        bg-white
+        text-left
+        shadow-[0_16px_45px_-32px_rgba(52,48,92,.4)]
+        outline-none
+        transition-all
+        duration-300
+        hover:-translate-y-0.5
+        hover:shadow-[0_20px_50px_-30px_rgba(52,48,92,.5)]
+        focus-visible:ring-2
+        focus-visible:ring-[#34305c]
+        focus-visible:ring-offset-3
+        ${
+          featured
+            ? "rounded-[26px] p-2.5 sm:p-3"
+            : "rounded-[20px] p-2"
+        }
       `}
-      style={{
-        backgroundColor: color,
-        animation: `kidsActivityFloat 5s ease-in-out ${delay} infinite`,
-      }}
-    />
+    >
+      <div
+        className={`
+          relative
+          flex
+          w-full
+          items-center
+          justify-center
+          overflow-hidden
+          rounded-[16px]
+          ${
+            featured
+              ? "aspect-[4/3] sm:aspect-[16/11] lg:min-h-[430px]"
+              : "aspect-[4/3]"
+          }
+        `}
+        style={{
+          backgroundColor: soft,
+        }}
+      >
+        {!failed ? (
+          <>
+            {/* Background fill only */}
+
+            <img
+              src={src}
+              alt=""
+              aria-hidden="true"
+              className="
+                absolute
+                inset-0
+                size-full
+                scale-110
+                object-cover
+                opacity-[.1]
+                blur-xl
+              "
+            />
+
+            {/* Original photograph */}
+
+            <img
+              src={src}
+              alt={alt}
+              loading={
+                featured
+                  ? "eager"
+                  : "lazy"
+              }
+              decoding="async"
+              onError={() =>
+                setFailed(true)
+              }
+              className="
+                relative
+                z-[1]
+                max-h-full
+                max-w-full
+                object-contain
+                transition-transform
+                duration-500
+                ease-out
+                group-hover:scale-[1.015]
+              "
+            />
+          </>
+        ) : (
+          <div
+            className="
+              flex
+              flex-col
+              items-center
+              gap-2
+              text-[#9995a2]
+            "
+          >
+            <ImageOff
+              size={22}
+            />
+
+            <span className="text-xs font-semibold">
+              Image unavailable
+            </span>
+          </div>
+        )}
+
+        {/* number */}
+
+        <span
+          className="
+            absolute
+            left-3
+            top-3
+            z-10
+            grid
+            size-8
+            place-items-center
+            rounded-full
+            border
+            border-white/80
+            bg-white/95
+            text-[9px]
+            font-black
+            tracking-[.08em]
+            shadow-sm
+          "
+          style={{
+            color: accent,
+          }}
+        >
+          {String(index + 1).padStart(
+            2,
+            "0"
+          )}
+        </span>
+
+        {/* View icon */}
+
+        <span
+          className="
+            absolute
+            bottom-3
+            right-3
+            z-10
+            grid
+            size-9
+            translate-y-1
+            place-items-center
+            rounded-full
+            bg-white/95
+            text-[#34305c]
+            opacity-0
+            shadow-md
+            transition-all
+            duration-300
+            group-hover:translate-y-0
+            group-hover:opacity-100
+          "
+        >
+          <Camera size={15} />
+        </span>
+      </div>
+    </button>
   );
 }
 
 /* =========================================================
-   HAND DRAWN UNDERLINE
+   LIGHTBOX EVENT LISTENER
 ========================================================= */
 
-function HandUnderline() {
+type LightboxData = {
+  images: string[];
+  index: number;
+  title: string;
+};
+
+function ActivityLightboxListener() {
+  const [lightbox, setLightbox] =
+    useState<LightboxData | null>(
+      null
+    );
+
+  useEffect(() => {
+    const handleOpen = (
+      event: Event
+    ) => {
+      const customEvent =
+        event as CustomEvent<LightboxData>;
+
+      setLightbox(
+        customEvent.detail
+      );
+    };
+
+    window.addEventListener(
+      "open-activity-gallery",
+      handleOpen
+    );
+
+    return () => {
+      window.removeEventListener(
+        "open-activity-gallery",
+        handleOpen
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!lightbox) return;
+
+    const previous =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
+
+    const handleKey = (
+      event: KeyboardEvent
+    ) => {
+      if (
+        event.key === "Escape"
+      ) {
+        setLightbox(null);
+      }
+
+      if (
+        event.key ===
+          "ArrowRight" &&
+        lightbox.images.length > 1
+      ) {
+        setLightbox(
+          (current) => {
+            if (!current)
+              return null;
+
+            return {
+              ...current,
+              index:
+                (current.index +
+                  1) %
+                current.images
+                  .length,
+            };
+          }
+        );
+      }
+
+      if (
+        event.key ===
+          "ArrowLeft" &&
+        lightbox.images.length > 1
+      ) {
+        setLightbox(
+          (current) => {
+            if (!current)
+              return null;
+
+            return {
+              ...current,
+              index:
+                (current.index -
+                  1 +
+                  current.images
+                    .length) %
+                current.images
+                  .length,
+            };
+          }
+        );
+      }
+    };
+
+    window.addEventListener(
+      "keydown",
+      handleKey
+    );
+
+    return () => {
+      document.body.style.overflow =
+        previous;
+
+      window.removeEventListener(
+        "keydown",
+        handleKey
+      );
+    };
+  }, [lightbox]);
+
+  if (!lightbox) return null;
+
+  const previous = () => {
+    setLightbox((current) => {
+      if (!current) return null;
+
+      return {
+        ...current,
+        index:
+          (current.index -
+            1 +
+            current.images.length) %
+          current.images.length,
+      };
+    });
+  };
+
+  const next = () => {
+    setLightbox((current) => {
+      if (!current) return null;
+
+      return {
+        ...current,
+        index:
+          (current.index + 1) %
+          current.images.length,
+      };
+    });
+  };
+
   return (
-    <svg
-      viewBox="0 0 100 12"
-      preserveAspectRatio="none"
-      aria-hidden="true"
+    <div
       className="
-        absolute
-        -bottom-3
-        left-0
-        h-3
-        w-full
-        text-[#ef5f6c]
+        fixed
+        inset-0
+        z-[9999]
+        flex
+        items-center
+        justify-center
+        bg-[#171525]/95
+        p-3
+        backdrop-blur-sm
+        sm:p-6
+      "
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${lightbox.title} photo gallery`}
+      onClick={() =>
+        setLightbox(null)
+      }
+    >
+      {/* CLOSE */}
+
+      <button
+        type="button"
+        aria-label="Close gallery"
+        onClick={(event) => {
+          event.stopPropagation();
+          setLightbox(null);
+        }}
+        className="
+          absolute
+          right-4
+          top-4
+          z-20
+          grid
+          size-11
+          place-items-center
+          rounded-full
+          bg-white
+          text-[#34305c]
+          shadow-xl
+          transition
+          hover:scale-105
+          sm:right-6
+          sm:top-6
+        "
+      >
+        <X size={20} />
+      </button>
+
+      {/* IMAGE */}
+
+      <div
+        className="
+          relative
+          flex
+          h-full
+          max-h-[88vh]
+          w-full
+          max-w-[1200px]
+          items-center
+          justify-center
+        "
+        onClick={(event) =>
+          event.stopPropagation()
+        }
+      >
+        <img
+          src={
+            lightbox.images[
+              lightbox.index
+            ]
+          }
+          alt={`${lightbox.title} photograph ${
+            lightbox.index + 1
+          }`}
+          className="
+            max-h-full
+            max-w-full
+            object-contain
+          "
+        />
+
+        {/* PREVIOUS */}
+
+        {lightbox.images.length >
+          1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous photo"
+              onClick={previous}
+              className="
+                absolute
+                left-1
+                grid
+                size-10
+                place-items-center
+                rounded-full
+                bg-white/95
+                text-[#34305c]
+                shadow-xl
+                transition
+                hover:scale-105
+                sm:left-4
+                sm:size-12
+              "
+            >
+              <ArrowLeft
+                size={20}
+              />
+            </button>
+
+            {/* NEXT */}
+
+            <button
+              type="button"
+              aria-label="Next photo"
+              onClick={next}
+              className="
+                absolute
+                right-1
+                grid
+                size-10
+                place-items-center
+                rounded-full
+                bg-white/95
+                text-[#34305c]
+                shadow-xl
+                transition
+                hover:scale-105
+                sm:right-4
+                sm:size-12
+              "
+            >
+              <ArrowRight
+                size={20}
+              />
+            </button>
+          </>
+        )}
+
+        {/* COUNTER */}
+
+        <div
+          className="
+            absolute
+            bottom-2
+            left-1/2
+            -translate-x-1/2
+            rounded-full
+            bg-black/55
+            px-4
+            py-2
+            text-xs
+            font-bold
+            text-white
+            backdrop-blur
+          "
+        >
+          {lightbox.index + 1}
+          {" / "}
+          {lightbox.images.length}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   SKELETON
+========================================================= */
+
+function ActivitiesSkeleton() {
+  return (
+    <div
+      className="
+        mx-auto
+        max-w-[1240px]
       "
     >
-      <path
-        d="M3 8C25 3 62 2 97 7"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-    </svg>
+      <div
+        className="
+          mb-7
+          flex
+          items-end
+          justify-between
+          border-b
+          border-[#34305c]/[.07]
+          pb-6
+        "
+      >
+        <div>
+          <div
+            className="
+              h-3
+              w-28
+              animate-pulse
+              rounded-full
+              bg-[#eee]
+            "
+          />
+
+          <div
+            className="
+              mt-4
+              h-9
+              w-64
+              max-w-full
+              animate-pulse
+              rounded-lg
+              bg-[#eee]
+            "
+          />
+        </div>
+      </div>
+
+      <div
+        className="
+          grid
+          gap-6
+          lg:grid-cols-[1.12fr_.88fr]
+        "
+      >
+        <div
+          className="
+            aspect-[4/3]
+            animate-pulse
+            rounded-[26px]
+            bg-[#efefed]
+          "
+        />
+
+        <div
+          className="
+            rounded-[26px]
+            border
+            border-[#34305c]/[.07]
+            bg-white
+            p-8
+          "
+        >
+          <div
+            className="
+              h-2
+              w-28
+              animate-pulse
+              rounded-full
+              bg-[#eee]
+            "
+          />
+
+          <div
+            className="
+              mt-5
+              h-8
+              w-2/3
+              animate-pulse
+              rounded-lg
+              bg-[#eee]
+            "
+          />
+
+          <div className="mt-7 space-y-3">
+            <div className="h-3 animate-pulse rounded bg-[#eee]" />
+            <div className="h-3 animate-pulse rounded bg-[#eee]" />
+            <div className="h-3 w-5/6 animate-pulse rounded bg-[#eee]" />
+            <div className="h-3 w-3/4 animate-pulse rounded bg-[#eee]" />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

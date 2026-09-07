@@ -41,7 +41,7 @@ import { KidsActivitiesPage } from '../features/kids/pages/KidsActivitiesPage'
 import { KidsAdmissionPage } from '../features/kids/pages/KidsAdmissionPage'
 import { KidsContactPage } from '../features/kids/pages/KidsContactPage'
 import { KidsCurriculumPage } from '../features/kids/pages/KidsCurriculumPage'
-import { KidsDisclosurePage } from '../features/kids/pages/KidsDisclosurePage'
+// import { KidsDisclosurePage } from '../features/kids/pages/KidsDisclosurePage'
 import { KidsFounderPage } from '../features/kids/pages/KidsFounderPage'
 import { KidsGalleryPage } from '../features/kids/pages/KidsGalleryPage'
 import { KidsGalleryCategoryPage } from '../features/kids/pages/gallery/KidsGalleryCategoryPage'
@@ -114,7 +114,7 @@ export function AppRoutes() {
       <Route path="gallery" element={<KidsGalleryPage />} />
       <Route path="gallery/:categorySlug" element={<KidsGalleryCategoryPage />} />
       <Route path="contact" element={<KidsContactPage />} />
-      <Route path="mandatory-disclosure" element={<KidsDisclosurePage />} />
+      {/* <Route path="mandatory-disclosure" element={<KidsDisclosurePage />} /> */}
       <Route path="*" element={<Navigate replace to="/kids" />} />
       </Route>
     {['about', 'academics', 'admissions', 'activities', 'gallery', 'contact'].map((path) => <Route key={path} path={path} element={<Navigate replace to={`/school/${path}`} />} />)}
