@@ -31,11 +31,11 @@ import {
 } from "react";
 import { Link } from "react-router-dom";
 import { AwardsSlider, type AwardItem } from "../components/AwardsSlider";
-import { NoticeBoard } from "../components/NoticeBoard";
+import { NoticeBoard, type NoticeItem } from "../components/NoticeBoard";
 import { schoolApi } from "../features/school/api/schoolApi";
 import { applyPageSeo, type PageSeo } from "../features/school/utils/pageSeo";
 
-type HomeCard = {
+type HomeCard = NoticeItem & {
   title?: string;
   description?: string;
   image?: string;
@@ -76,6 +76,16 @@ type HomePageData = {
 const mediaBaseUrl =
   "https://lightskyblue-eland-620788.hostingersite.com/storage/";
 
+function descriptionToText(description?: string) {
+  if (!description) return "";
+
+  const document = new DOMParser().parseFromString(description, "text/html");
+  document.querySelectorAll("script, style").forEach((element) => element.remove());
+  document.querySelectorAll("p, div, br, li").forEach((element) => {
+    element.after(document.createTextNode(" "));
+  });
+  return (document.body.textContent || "").replace(/\s+/g, " ").trim();
+}
 function resolveMediaUrl(image?: string | null, imageUrl?: string | null) {
   if (image) return `${mediaBaseUrl}${image.replace(/^\/+/, "")}`;
   if (imageUrl && !imageUrl.includes("localhost")) return imageUrl;
@@ -249,6 +259,7 @@ export function HomePage() {
     (!isHomePagePending ? "/images/paragon-school.webp" : undefined);
   const heroImageLoaded =
     Boolean(heroImageUrl) && loadedHeroImageUrl === heroImageUrl;
+  const noticeBoard = section("home_feature_boxes");
   const welcome = section("home_welcome");
   const awardsSection = section("home_awards");
   const featuresSection = section("home_features");
@@ -856,7 +867,7 @@ export function HomePage() {
           md:leading-8
         "
             >
-              {banner?.description ||
+              {descriptionToText(banner?.description) ||
                 "Paragon Senior Secondary School is committed to providing balanced academic, athletic, ethical and moral education for every student."}
             </p>
 
@@ -1035,7 +1046,17 @@ export function HomePage() {
         max-w-[1050px]
       "
           >
-            <NoticeBoard />
+            {noticeBoard && (
+              <NoticeBoard
+                title={descriptionToText(noticeBoard.title)}
+                description={descriptionToText(noticeBoard.description)}
+                notices={cardsFor(noticeBoard).map((card) => ({
+                  ...card,
+                  title: descriptionToText(card.title),
+                  description: card.description,
+                }))}
+              />
+            )}
           </div>
 
           {/* =====================================================

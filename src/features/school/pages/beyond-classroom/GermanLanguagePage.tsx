@@ -310,7 +310,7 @@ export function GermanLanguagePage() {
           ================================================= */}
           <div className="mx-auto mt-12 max-w-6xl border-t border-slate-200 pt-8">
             <Link
-              to="/school"
+              to="/"
               className="group inline-flex items-center gap-3 text-sm font-bold text-navy transition duration-300 hover:text-gold-dark"
             >
               <span className="grid size-9 place-items-center rounded-full border border-navy/10 bg-white transition duration-300 group-hover:-translate-x-1 group-hover:border-gold/40">

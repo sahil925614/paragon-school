@@ -51,7 +51,7 @@ function selectorRoute(section: WelcomeSection | undefined, fallback: string) {
   const url = section?.settings.button_url?.trim();
 
   if (!url) return fallback;
-  if (url === "/paragon-senior-school") return "/school";
+  if (url === "/paragon-senior-school") return "/";
   if (url === "/paragon-kids") return "/kids";
 
   return url;
@@ -79,7 +79,7 @@ export function SchoolSelectorPage() {
   );
   const senior = seniorSection?.settings;
   const kids = kidsSection?.settings;
-  const seniorRoute = selectorRoute(seniorSection, "/school");
+  const seniorRoute = selectorRoute(seniorSection, "/");
   const kidsRoute = selectorRoute(kidsSection, "/kids");
   const seniorLogo =
     welcomeMediaUrl(senior?.logo, senior?.logo_url) ||

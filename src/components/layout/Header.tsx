@@ -582,7 +582,8 @@ export function Header() {
             {/* LOGIN - ALWAYS VISIBLE */}
 
             <a
-              href="#"
+            target="_blank"
+              href="https://paragonmohali.schoolpad.in/"
               className="
       group
       flex
@@ -628,7 +629,7 @@ export function Header() {
         {/* LOGO */}
 
         <Link
-          to="/school"
+          to="/"
           className="flex shrink-0 items-center"
           onClick={closeMobileMenu}
         >
@@ -649,7 +650,7 @@ export function Header() {
             className={({ isActive }) =>
               `nav-link whitespace-nowrap ${isActive ? "text-gold-dark" : ""}`
             }
-            to="/school"
+            to="/"
           >
             Home
           </NavLink>
@@ -780,7 +781,7 @@ export function Header() {
                 isActive ? "font-semibold text-gold-dark" : ""
               }`
             }
-            to="/school"
+            to="/"
             onClick={closeMobileMenu}
           >
             Home

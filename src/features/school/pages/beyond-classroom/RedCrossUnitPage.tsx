@@ -591,7 +591,7 @@ export function RedCrossUnitPage() {
 
           <div className="mx-auto mt-16 max-w-6xl border-t border-slate-200 pt-8">
             <Link
-              to="/school"
+              to="/"
               className="
                 group
                 inline-flex

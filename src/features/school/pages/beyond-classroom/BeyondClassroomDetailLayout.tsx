@@ -23,7 +23,7 @@ export function BeyondClassroomDetailLayout({ title, description, icon: Icon, ch
             </div>
             <h2 className="mt-6 font-serif text-3xl text-navy">{title}</h2>
             <div className="mt-4 space-y-4 text-base leading-8 text-slate-600">{children}</div>
-            <Link to="/school" className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-navy hover:text-gold-dark">
+            <Link to="/" className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-navy hover:text-gold-dark">
               <ArrowLeft size={17} /> Back to home
             </Link>
           </article>

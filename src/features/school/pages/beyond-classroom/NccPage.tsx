@@ -933,7 +933,7 @@ export function NccPage() {
             "
           >
             <Link
-              to="/school"
+              to="/"
               className="
                 group
                 inline-flex

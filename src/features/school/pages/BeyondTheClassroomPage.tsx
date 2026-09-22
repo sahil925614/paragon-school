@@ -63,7 +63,7 @@ export function BeyondTheClassroomPage() {
   const experience = experienceSlug
     ? experienceDetails[experienceSlug]
     : undefined;
-  if (!experience) return <Navigate replace to="/school" />;
+  if (!experience) return <Navigate replace to="/" />;
   const Icon = experience.icon;
 
   return (
@@ -82,7 +82,7 @@ export function BeyondTheClassroomPage() {
               {experience.text}
             </p>
             <Link
-              to="/school"
+              to="/"
               className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-navy hover:text-gold-dark"
             >
               <ArrowLeft size={17} /> Back to home

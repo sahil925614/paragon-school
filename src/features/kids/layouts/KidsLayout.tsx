@@ -252,7 +252,8 @@ export function KidsLayout() {
     ================================================= */}
 
     <Link
-      to="#"
+    target="_blank"
+      to="https://paragonmohali.schoolpad.in/"
       className="
         group
         relative
@@ -404,7 +405,7 @@ export function KidsLayout() {
               {/* HOME */}
 
               <NavLink
-                to="/school"
+                to="/"
                 end
                 className={({ isActive }) =>
                   `
@@ -740,7 +741,7 @@ export function KidsLayout() {
               {/* GO TO PARAGON SCHOOL */}
 
               <Link
-                to="/school"
+                to="/"
                 className="
                   group
                   ml-3
@@ -851,7 +852,7 @@ export function KidsLayout() {
               {/* HOME */}
 
               <NavLink
-                to="/school"
+                to="/"
                 end
                 onClick={closeMenu}
                 className={({ isActive }) =>
@@ -1025,7 +1026,7 @@ export function KidsLayout() {
               {/* GO TO PARAGON SCHOOL */}
 
               <Link
-                to="/school"
+                to="/"
                 onClick={closeMenu}
                 className="
                   mt-4

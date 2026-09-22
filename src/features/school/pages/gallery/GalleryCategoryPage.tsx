@@ -144,7 +144,7 @@ export function GalleryCategoryPage() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#071b2c]/95 via-[#102a43]/82 to-[#102a43]/45" />
         <div className="container flex min-h-[390px] flex-col justify-center py-14 sm:min-h-[470px] sm:py-16">
           <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-[10px] font-semibold uppercase tracking-[.14em] text-slate-300 sm:text-xs">
-            <Link to="/school" className="inline-flex items-center gap-2 hover:text-white">
+            <Link to="/" className="inline-flex items-center gap-2 hover:text-white">
               <Home size={14} /> Home
             </Link>
             <ChevronRight size={14} className="text-gold" />

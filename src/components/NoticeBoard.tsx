@@ -5,95 +5,95 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { createElement, useEffect, useMemo, useState, type ReactNode } from "react";
 
-type NoticeItem = {
-  id: number;
-  date: string;
-  category: string;
-  title: string;
+export type NoticeItem = {
+  id?: number;
+  date?: string;
+  category?: string;
+  title?: string;
   description?: string;
   points?: string[];
-  link?: string;
-  linkText?: string;
+  button_url?: string;
+  button_text?: string;
+  link_url?: string;
+  link_text?: string;
 };
 
-const notices: NoticeItem[] = [
-  {
-    id: 1,
-    date: "22 Sep 2026",
-    category: "Important Update",
-    title: "Admissions Open for Session 2026–27",
-    description:
-      "Registrations are now open. Parents can submit an admission enquiry and connect with the school office for further guidance.",
-    link: "#",
-    linkText: "View Details",
-  },
-  {
-    id: 2,
-    date: "22 Sep 2026",
-    category: "School Timings",
-    title: "School Timing Information",
-    points: [
-      "Summer timings: April to October",
-      "Winter timings: November to March",
-      "Students should report before assembly time.",
-    ],
-  },
-  {
-    id: 3,
-    date: "22 Sep 2026",
-    category: "Academics",
-    title: "Academic Calendar & Important Dates",
-    description:
-      "Check upcoming examinations, activities, holidays and other important academic dates.",
-    link: "#",
-    linkText: "View Calendar",
-  },
-  {
-    id: 4,
-    date: "22 Sep 2026",
-    category: "Notice",
-    title: "Parent Communication",
-    description:
-      "Please stay connected with the school for circulars, schedule changes and important announcements.",
-  },
-];
+// Recreate only supported editor elements; never insert raw API HTML.
+function safeNoticeUrl(value?: string) {
+  if (!value?.trim()) return undefined;
+  try {
+    const url = new URL(value, window.location.origin);
+    return ["http:", "https:", "mailto:", "tel:"].includes(url.protocol)
+      ? value
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
-export function NoticeBoard() {
+function NoticeDescription({ html }: { html: string }) {
+  const content = useMemo(() => {
+    const document = new DOMParser().parseFromString(html, "text/html");
+    const allowed = new Set([
+      "p", "br", "div", "strong", "b", "em", "i", "u", "s", "ul", "ol", "li",
+      "blockquote", "h2", "h3", "h4", "a",
+    ]);
+    const render = (node: Node, key: number): ReactNode => {
+      if (node.nodeType === Node.TEXT_NODE) return node.textContent;
+      if (node.nodeType !== Node.ELEMENT_NODE) return null;
+      const element = node as Element;
+      const tag = element.tagName.toLowerCase();
+      if (["script", "style", "iframe", "object", "svg"].includes(tag)) return null;
+      const children = Array.from(element.childNodes).map(render);
+      if (!allowed.has(tag)) return children;
+      if (tag === "a") {
+        const url = safeNoticeUrl(element.getAttribute("href") ?? undefined);
+        return url
+          ? createElement(Link, { key, to: url }, ...children)
+          : createElement("span", { key }, ...children);
+      }
+      return createElement(tag, { key }, ...(tag === "br" ? [] : children));
+    };
+    return Array.from(document.body.childNodes).map(render);
+  }, [html]);
+
+  return <div className="mt-2 whitespace-pre-wrap break-words text-xs leading-5 text-slate-600 sm:text-[13px] sm:leading-6 [&_p+p]:mt-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1 [&_a]:text-[#c72c3b] [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_h2]:text-lg [&_h3]:text-base [&_h4]:font-bold">{content}</div>;
+}
+
+type NoticeBoardProps = {
+  title?: string;
+  description?: string;
+  notices: NoticeItem[];
+};
+
+export function NoticeBoard({
+  title = "Notice Board",
+  description = "Latest school announcements",
+  notices,
+}: NoticeBoardProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [visible, setVisible] = useState(true);
+  const currentIndex = notices.length ? activeIndex % notices.length : 0;
 
   const changeNotice = (nextIndex: number) => {
-    setVisible(false);
-
-    window.setTimeout(() => {
-      setActiveIndex(
-        (nextIndex + notices.length) % notices.length
-      );
-      setVisible(true);
-    }, 250);
+    if (!notices.length) return;
+    setActiveIndex((nextIndex + notices.length) % notices.length);
   };
 
   useEffect(() => {
     if (paused || notices.length <= 1) return;
-
     const timer = window.setInterval(() => {
-      setVisible(false);
-
-      window.setTimeout(() => {
-        setActiveIndex(
-          (current) => (current + 1) % notices.length
-        );
-        setVisible(true);
-      }, 250);
+      setActiveIndex((current) => (current + 1) % notices.length);
     }, 5000);
-
     return () => window.clearInterval(timer);
-  }, [paused]);
+  }, [paused, notices.length]);
 
-  const activeNotice = notices[activeIndex];
+  const activeNotice = notices[currentIndex];
+  const buttonUrl = safeNoticeUrl(activeNotice?.button_url || activeNotice?.link_url);
+  const buttonText = activeNotice?.button_text || activeNotice?.link_text;
 
   return (
     <div
@@ -155,7 +155,7 @@ export function NoticeBoard() {
                   text-[#efc65f]
                 "
               >
-                Notice Board
+                {title}
               </p>
 
               <span className="relative flex size-1.5">
@@ -183,7 +183,7 @@ export function NoticeBoard() {
             </div>
 
             <p className="mt-0.5 truncate text-xs font-medium text-white/75">
-              Latest school announcements
+              {description}
             </p>
           </div>
         </div>
@@ -197,17 +197,18 @@ export function NoticeBoard() {
             text-white/45
           "
         >
-          {String(activeIndex + 1).padStart(2, "0")} /{" "}
+          {String(notices.length ? currentIndex + 1 : 0).padStart(2, "0")} /{" "}
           {String(notices.length).padStart(2, "0")}
         </span>
       </div>
 
       {/* NOTICE CONTENT */}
       <div className="relative min-h-[205px] overflow-hidden sm:min-h-[190px]">
+        {activeNotice ? (
         <article
+          key={currentIndex}
           className={`
-            absolute
-            inset-0
+            notice-slide-up
             flex
             flex-col
             px-4
@@ -216,16 +217,11 @@ export function NoticeBoard() {
             duration-500
             ease-out
             sm:px-5
-            ${
-              visible
-                ? "translate-y-0 opacity-100"
-                : "-translate-y-5 opacity-0"
-            }
           `}
         >
           {/* META */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <span
+            {activeNotice.category && <span
               className="
                 inline-flex
                 items-center
@@ -243,16 +239,16 @@ export function NoticeBoard() {
             >
               <BellRing size={10} />
               {activeNotice.category}
-            </span>
+            </span>}
 
-            <span
+            {activeNotice.date && <span
               className="
                 inline-flex
                 items-center
                 gap-1.5
                 text-[10px]
                 font-medium
-                text-slate-400
+                text-slate-600
               "
             >
               <CalendarDays
@@ -260,7 +256,7 @@ export function NoticeBoard() {
                 className="text-gold-dark"
               />
               {activeNotice.date}
-            </span>
+            </span>}
           </div>
 
           {/* TITLE */}
@@ -279,25 +275,13 @@ export function NoticeBoard() {
 
           {/* DESCRIPTION */}
           {activeNotice.description && (
-            <p
-              className="
-                mt-2
-                line-clamp-2
-                text-xs
-                leading-5
-                text-slate-600
-                sm:text-[13px]
-                sm:leading-6
-              "
-            >
-              {activeNotice.description}
-            </p>
+            <NoticeDescription html={activeNotice.description} />
           )}
 
           {/* POINTS */}
           {activeNotice.points && (
             <ul className="mt-2 grid gap-1">
-              {activeNotice.points.slice(0, 3).map((point) => (
+              {activeNotice.points.map((point) => (
                 <li
                   key={point}
                   className="
@@ -326,9 +310,13 @@ export function NoticeBoard() {
           )}
 
           {/* LINK */}
-          {activeNotice.link && (
-            <a
-              href={activeNotice.link}
+          {(buttonUrl || buttonText) && (
+            <Link
+              to={buttonUrl || "#"}
+              aria-disabled={!buttonUrl || buttonUrl === "#"}
+              onClick={(event) => {
+                if (!buttonUrl || buttonUrl === "#") event.preventDefault();
+              }}
               className="
                 group
                 mt-auto
@@ -344,7 +332,7 @@ export function NoticeBoard() {
                 hover:text-navy
               "
             >
-              {activeNotice.linkText || "Read More"}
+              {buttonText || "Read More"}
 
               <ArrowUpRight
                 size={13}
@@ -354,13 +342,18 @@ export function NoticeBoard() {
                   group-hover:translate-x-0.5
                 "
               />
-            </a>
+            </Link>
           )}
         </article>
+        ) : (
+          <p className="px-5 py-10 text-sm text-slate-500" role="status">
+            No announcements at the moment.
+          </p>
+        )}
       </div>
 
       {/* CONTROLS */}
-      <div
+      {notices.length > 1 && <div
         className="
           flex
           items-center
@@ -375,7 +368,7 @@ export function NoticeBoard() {
         <div className="flex items-center gap-1.5">
           {notices.map((notice, index) => (
             <button
-              key={notice.id}
+              key={notice.id ?? index}
               type="button"
               onClick={() => changeNotice(index)}
               aria-label={`Show notice ${index + 1}`}
@@ -385,7 +378,7 @@ export function NoticeBoard() {
                 transition-all
                 duration-300
                 ${
-                  index === activeIndex
+                  index === currentIndex
                     ? "w-7 bg-[#c72c3b]"
                     : "w-1.5 bg-slate-200 hover:bg-gold"
                 }
@@ -397,7 +390,7 @@ export function NoticeBoard() {
         <div className="flex items-center gap-1.5">
           <button
             type="button"
-            onClick={() => changeNotice(activeIndex - 1)}
+            onClick={() => changeNotice(currentIndex - 1)}
             aria-label="Previous notice"
             className="
               grid
@@ -418,7 +411,7 @@ export function NoticeBoard() {
 
           <button
             type="button"
-            onClick={() => changeNotice(activeIndex + 1)}
+            onClick={() => changeNotice(currentIndex + 1)}
             aria-label="Next notice"
             className="
               grid
@@ -434,7 +427,7 @@ export function NoticeBoard() {
             <ChevronRight size={14} />
           </button>
         </div>
-      </div>
+      </div>}
 
       {/* BOTTOM ACCENT */}
       <div

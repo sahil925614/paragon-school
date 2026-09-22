@@ -55,9 +55,11 @@ import { KidsPrincipalsDeskPage } from '../features/kids/pages/KidsPrincipalsDes
 export function AppRoutes() {
   return <><ScrollToTop /><Routes>
     {/* <Route index element={<SchoolSelectorPage />} /> */}
-    <Route index element={<Navigate replace to="/school" />} />
-    <Route path="school" element={<SchoolLayout />}>
+    <Route element={<SchoolLayout />}>
       <Route index element={<SchoolHomePage />} />
+    </Route>
+    <Route path="school" element={<SchoolLayout />}>
+      <Route index element={<Navigate replace to="/" />} />
       <Route path="german-language-teaching" element={<GermanLanguagePage />} />
       <Route path="german-language" element={<Navigate replace to="/school/german-language-teaching" />} />
       <Route path="red-cross-unit" element={<RedCrossUnitPage />} />
@@ -96,7 +98,7 @@ export function AppRoutes() {
       <Route path="contact" element={<ContactPage />} />
       <Route path="mandatory-disclosure-information" element={<MandatoryDisclosurePage />} />
       <Route path="mandatory-disclosure" element={<Navigate replace to="/school/mandatory-disclosure-information" />} />
-      <Route path="*" element={<Navigate replace to="/school" />} />
+      <Route path="*" element={<Navigate replace to="/" />} />
     </Route>
     <Route path="kids" element={<KidsLayout />}>
       <Route index element={<KidsHomePage />} />

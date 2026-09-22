@@ -47,7 +47,7 @@ export function PageBanner({
 
       <div className="container relative z-10 flex min-h-[300px] flex-col justify-center py-14 sm:min-h-[340px] sm:py-16 lg:min-h-[390px] lg:py-20">
         <nav aria-label="Breadcrumb" className="banner-reveal flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-slate-300 sm:text-sm">
-          <Link className="inline-flex items-center gap-2 hover:text-gold" to="/school">
+          <Link className="inline-flex items-center gap-2 hover:text-gold" to="/">
             <Home size={15} aria-hidden="true" /> Home
           </Link>
           <ChevronRight className="text-gold" size={15} aria-hidden="true" />

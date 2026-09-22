@@ -874,7 +874,7 @@ export function NssPage() {
           >
 
             <Link
-              to="/school"
+              to="/"
               className="
                 group
                 inline-flex
