@@ -106,7 +106,9 @@ export function NoticeBoard({
         }
       }}
       className="
-        mt-9
+        flex
+        aspect-square
+        flex-col
         overflow-hidden
         rounded-[22px]
         border
@@ -122,6 +124,7 @@ export function NoticeBoard({
           items-center
           justify-between
           gap-4
+          shrink-0
           bg-navy
           px-4
           py-3.5
@@ -203,7 +206,7 @@ export function NoticeBoard({
       </div>
 
       {/* NOTICE CONTENT */}
-      <div className="relative min-h-[205px] overflow-hidden sm:min-h-[190px]">
+      <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {activeNotice ? (
         <article
           key={currentIndex}
@@ -358,6 +361,7 @@ export function NoticeBoard({
           flex
           items-center
           justify-between
+          shrink-0
           border-t
           border-slate-100
           px-4
@@ -432,7 +436,7 @@ export function NoticeBoard({
       {/* BOTTOM ACCENT */}
       <div
         aria-hidden="true"
-        className="flex h-[2px]"
+        className="flex h-[2px] shrink-0"
       >
         <span className="flex-[2] bg-[#c72c3b]" />
         <span className="flex-1 bg-gold" />
