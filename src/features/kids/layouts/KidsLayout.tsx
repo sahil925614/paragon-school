@@ -252,7 +252,7 @@ export function KidsLayout() {
     ================================================= */}
 
     <Link
-      to="/school"
+      to="#"
       className="
         group
         relative
@@ -288,26 +288,19 @@ export function KidsLayout() {
       </span>
 
       <span className="hidden whitespace-nowrap xs:inline sm:inline">
-        Go to Paragon School
+       Student Login
       </span>
 
       {/* mobile short text */}
       <span className="whitespace-nowrap sm:hidden">
-        Paragon School
+       Student Login
       </span>
 
-      <ArrowUpRight
-        size={13}
-        strokeWidth={2.7}
-        className="
-          text-[#ef5f6c]
-          transition-all
-          duration-300
-          group-hover:-translate-y-0.5
-          group-hover:translate-x-0.5
-          group-hover:text-[#34305c]
-        "
-      />
+      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" d="M11.98 20v-1h6.405q.23 0 .423-.192t.192-.424V5.616q0-.231-.192-.424T18.384 5h-6.403V4h6.404q.69 0 1.152.463T20 5.616v12.769q0 .69-.463 1.153T18.385 20zm-.71-4.461l-.703-.72l2.32-2.319H4v-1h8.887l-2.32-2.32l.702-.718L14.808 12z" />
+</svg>
+
 
       {/* shine */}
       <span
@@ -411,7 +404,7 @@ export function KidsLayout() {
               {/* HOME */}
 
               <NavLink
-                to="/kids"
+                to="/school"
                 end
                 className={({ isActive }) =>
                   `
@@ -744,6 +737,38 @@ export function KidsLayout() {
                 );
               })}
 
+              {/* GO TO PARAGON SCHOOL */}
+
+              <Link
+                to="/school"
+                className="
+                  group
+                  ml-3
+                  inline-flex
+                  shrink-0
+                  items-center
+                  gap-2
+                  rounded-full
+                  border
+                  border-[#34305c]/15
+                  bg-[#f8f6ff]
+                  px-4
+                  py-2.5
+                  text-[12px]
+                  font-bold
+                  text-[#34305c]
+                  transition-all
+                  duration-300
+                  hover:-translate-y-0.5
+                  hover:border-[#ffd34e]
+                  hover:bg-[#ffd34e]
+                  xl:px-5
+                "
+              >
+                Go to Paragon Senior
+                <ArrowUpRight size={14} />
+              </Link>
+
               {/* DISCLOSURE */}
 
               {/* <NavLink
@@ -826,7 +851,7 @@ export function KidsLayout() {
               {/* HOME */}
 
               <NavLink
-                to="/kids"
+                to="/school"
                 end
                 onClick={closeMenu}
                 className={({ isActive }) =>
@@ -996,6 +1021,33 @@ export function KidsLayout() {
                 })}
 
               </div>
+
+              {/* GO TO PARAGON SCHOOL */}
+
+              <Link
+                to="/school"
+                onClick={closeMenu}
+                className="
+                  mt-4
+                  flex
+                  items-center
+                  justify-between
+                  rounded-xl
+                  border
+                  border-[#ffd34e]/50
+                  bg-[#fff8df]
+                  px-4
+                  py-3.5
+                  text-sm
+                  font-bold
+                  text-[#34305c]
+                  transition
+                  hover:bg-[#ffd34e]
+                "
+              >
+                Go to Paragon School
+                <ArrowUpRight size={16} />
+              </Link>
 
               {/* MOBILE DISCLOSURE */}
 

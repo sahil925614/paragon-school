@@ -31,6 +31,7 @@ import {
 } from "react";
 import { Link } from "react-router-dom";
 import { AwardsSlider, type AwardItem } from "../components/AwardsSlider";
+import { NoticeBoard } from "../components/NoticeBoard";
 import { schoolApi } from "../features/school/api/schoolApi";
 import { applyPageSeo, type PageSeo } from "../features/school/utils/pageSeo";
 
@@ -998,164 +999,211 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* =====================================================
-          WELCOME
-      ====================================================== */}
-
       <section
         className="
-          relative
-          overflow-hidden
-          bg-[#fbfaf7]
-          py-16
-          sm:py-20
-          lg:py-24
-        "
+    relative
+    overflow-hidden
+    bg-[#fbfaf7]
+    py-12
+    sm:py-16
+    lg:py-20
+  "
       >
+        {/* decorative circle */}
         <div
           className="
-            pointer-events-none
-            absolute
-            -right-28
-            top-10
-            size-72
-            rounded-full
-            border-[35px]
-            border-gold/[.04]
-          "
+      pointer-events-none
+      absolute
+      -right-28
+      top-10
+      size-72
+      rounded-full
+      border-[35px]
+      border-gold/[.04]
+    "
         />
 
-        <div
-          className="
-            container
-            relative
-            grid
-            gap-12
-            lg:grid-cols-[.85fr_1.15fr]
-            lg:items-center
-            lg:gap-16
-          "
-        >
-          {/* IMAGE */}
+        <div className="container relative">
+          {/* =====================================================
+        NOTICE BOARD — FIRST
+    ====================================================== */}
 
-          <div className="relative mx-auto w-full max-w-[480px] lg:mx-0">
-            <div
-              className="
-                overflow-hidden
-                rounded-[30px]
-                bg-[#edf2f5]
-                shadow-[0_25px_70px_-35px_rgba(16,42,67,.35)]
-              "
-            >
-              <img
-                src={
-                  resolveMediaUrl(welcome?.image, welcome?.image_url) ||
-                  "/images/para-students.png"
-                }
-                alt="Paragon School students"
-                className="
-                  aspect-[5/4]
-                  w-full
-                  object-contain
-                  object-bottom
-                "
-              />
-            </div>
-
-            <div
-              className="
-                absolute
-                -bottom-5
-                right-4
-                rounded-2xl
-                bg-gold-dark
-                px-6
-                py-5
-                text-white
-                shadow-xl
-                sm:right-7
-              "
-            >
-              <strong className="font-serif text-3xl sm:text-4xl">45+</strong>
-
-              <span
-                className="
-                  mt-1
-                  block
-                  text-[10px]
-                  font-bold
-                  uppercase
-                  tracking-[0.16em]
-                  text-white/75
-                "
-              >
-                Years of Purpose
-              </span>
-            </div>
+          <div
+            className="
+        mx-auto
+        w-full
+        max-w-[1050px]
+      "
+          >
+            <NoticeBoard />
           </div>
 
-          {/* CONTENT */}
+          {/* =====================================================
+        SMALL VISUAL SEPARATOR
+    ====================================================== */}
 
-          <div>
-            <SectionEyebrow>Welcome to Paragon</SectionEyebrow>
+          <div
+            aria-hidden="true"
+            className="
+        mx-auto
+        my-12
+        flex
+        items-center
+        justify-center
+        gap-2
+        sm:my-14
+        lg:my-16
+      "
+          >
+            <span className="h-px w-10 bg-[#c72c3b]/35" />
+            <span className="size-1.5 rounded-full bg-[#c72c3b]" />
+            <span className="size-1.5 rounded-full bg-gold" />
+            <span className="h-px w-10 bg-gold/35" />
+          </div>
 
-            <h2
-              className="
-                mt-4
-                max-w-2xl
-                font-serif
-                text-4xl
-                leading-[1.15]
-                text-navy
-                sm:text-5xl
-              "
-            >
-              {welcome?.title || "Welcome to Paragon Senior Secondary School"}
-            </h2>
+          {/* =====================================================
+        WELCOME CONTENT
+    ====================================================== */}
 
-            <div className="mt-5 h-[2px] w-12 bg-gold" />
+          <div
+            className="
+        grid
+        gap-12
+        lg:grid-cols-[.85fr_1.15fr]
+        lg:items-center
+        lg:gap-16
+      "
+          >
+            {/* IMAGE */}
 
-            <p
-              className="
-                mt-7
-                max-w-3xl
-                text-base
-                leading-8
-                text-slate-600
-                sm:text-lg
-              "
-            >
-              {welcomeParts[0] ||
-                "Paragon Senior Secondary School is an English Medium, Co-educational Institution focused on balanced student development."}
-            </p>
+            <div className="relative mx-auto w-full max-w-[480px] lg:mx-0">
+              <div
+                className="
+            overflow-hidden
+            rounded-[30px]
+            bg-[#edf2f5]
+            shadow-[0_25px_70px_-35px_rgba(16,42,67,.35)]
+          "
+              >
+                <img
+                  src={
+                    resolveMediaUrl(welcome?.image, welcome?.image_url) ||
+                    "/images/para-students.png"
+                  }
+                  alt="Paragon School students"
+                  className="
+              aspect-[5/4]
+              w-full
+              object-contain
+              object-bottom
+            "
+                />
+              </div>
 
-            <p className="mt-4 max-w-3xl leading-8 text-slate-600">
-              {welcomeParts[1] ||
-                "The challenge is to create an environment that supports and inspires every learner."}
-            </p>
+              {/* 45+ YEARS BADGE */}
 
-            <Link
-              to="/school/about/infrastructure"
-              className="
-                group
-                mt-7
-                inline-flex
-                items-center
-                gap-2
-                text-sm
-                font-bold
-                text-gold-dark
-              "
-            >
-              Know More About Paragon
-              <ChevronRight
-                size={17}
-                className="transition group-hover:translate-x-1"
-              />
-            </Link>
+              <div
+                className="
+            absolute
+            -bottom-5
+            right-4
+            rounded-2xl
+            bg-gold-dark
+            px-6
+            py-5
+            text-white
+            shadow-xl
+            sm:right-7
+          "
+              >
+                <strong className="font-serif text-3xl sm:text-4xl">45+</strong>
+
+                <span
+                  className="
+              mt-1
+              block
+              text-[10px]
+              font-bold
+              uppercase
+              tracking-[0.16em]
+              text-white/75
+            "
+                >
+                  Years of Purpose
+                </span>
+              </div>
+            </div>
+
+            {/* CONTENT */}
+
+            <div>
+              <SectionEyebrow>Welcome to Paragon</SectionEyebrow>
+
+              <h2
+                className="
+            mt-4
+            max-w-2xl
+            font-serif
+            text-4xl
+            leading-[1.15]
+            text-navy
+            sm:text-5xl
+          "
+              >
+                {welcome?.title || "Welcome to Paragon Senior Secondary School"}
+              </h2>
+
+              <div className="mt-5 h-[2px] w-12 bg-gold" />
+
+              <p
+                className="
+            mt-7
+            max-w-3xl
+            text-base
+            leading-8
+            text-slate-600
+            sm:text-lg
+          "
+              >
+                {welcomeParts[0] ||
+                  "Paragon Senior Secondary School is an English Medium, Co-educational Institution focused on balanced student development."}
+              </p>
+
+              <p className="mt-4 max-w-3xl leading-8 text-slate-600">
+                {welcomeParts[1] ||
+                  "The challenge is to create an environment that supports and inspires every learner."}
+              </p>
+
+              <Link
+                to="/school/about/infrastructure"
+                className="
+            group
+            mt-7
+            inline-flex
+            items-center
+            gap-2
+            text-sm
+            font-bold
+            text-gold-dark
+          "
+              >
+                Know More About Paragon
+                <ChevronRight
+                  size={17}
+                  className="
+              transition
+              group-hover:translate-x-1
+            "
+                />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* =====================================================
+          NOTICE BOARD
+      ====================================================== */}
 
       {/* =====================================================
           AWARDS
@@ -2196,12 +2244,12 @@ export function HomePage() {
               <span className="grid size-13 place-items-center rounded-2xl bg-[#c72c3b] text-white shadow-lg">
                 <BookOpenCheck size={24} strokeWidth={1.8} />
               </span>
-              
+
               <h2 className="mt-4 font-serif text-4xl leading-tight text-navy sm:text-5xl">
                 {yearBook?.title || "E-Year Book 2025-26"}
               </h2>
               <div className="mt-6 h-px w-12 bg-[#c72c3b]" />
-             <p className="mt-7 text-[10px] font-bold uppercase tracking-[.22em] text-[#c72c3b]">
+              <p className="mt-7 text-[10px] font-bold uppercase tracking-[.22em] text-[#c72c3b]">
                 {yearBook?.description || "School Publication"}
               </p>
               <a
@@ -2210,7 +2258,7 @@ export function HomePage() {
                 rel="noreferrer"
                 className="mt-7 inline-flex items-center gap-3 rounded-full bg-navy px-5 py-3 text-xs font-bold uppercase tracking-[.12em] text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#c72c3b]"
               >
-               {yearBook?.button_text}
+                {yearBook?.button_text}
                 <ArrowRight size={16} />
               </a>
             </div>
@@ -2242,8 +2290,8 @@ function YearBookPreview({ url, title }: YearBookPreviewProps) {
   const [progress, setProgress] = useState(4);
   const [isLoaded, setIsLoaded] = useState(false);
   const [previewAttempt, setPreviewAttempt] = useState(0);
-  const [useMobileViewer] = useState(() =>
-    window.matchMedia("(max-width: 767px)").matches,
+  const [useMobileViewer] = useState(
+    () => window.matchMedia("(max-width: 767px)").matches,
   );
   const viewerShellLoadedRef = useRef(false);
   const minimumWaitFinishedRef = useRef(false);
@@ -2348,55 +2396,57 @@ function YearBookPreview({ url, title }: YearBookPreviewProps) {
       ) : (
         <>
           {!isLoaded && (
-        <div
-          className="absolute inset-0 z-20 grid place-items-center bg-[#f5f7f8] px-6"
-          role="status"
-          aria-live="polite"
-        >
-          <div className="w-full max-w-sm text-center">
-            <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-navy text-white shadow-lg">
-              <BookOpenCheck size={24} strokeWidth={1.8} />
-            </span>
-
-            <p className="mt-5 text-[10px] font-bold uppercase tracking-[.2em] text-[#c72c3b]">
-              Preparing publication
-            </p>
-
-            <p className="mt-3 font-serif text-3xl text-navy">{progress}%</p>
-
             <div
-              className="mt-5 h-2 overflow-hidden rounded-full bg-navy/10"
-              role="progressbar"
-              aria-label="Loading E-Year Book"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={progress}
+              className="absolute inset-0 z-20 grid place-items-center bg-[#f5f7f8] px-6"
+              role="status"
+              aria-live="polite"
             >
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#c72c3b] via-[#df4756] to-gold transition-[width] duration-300 ease-out"
-                style={{ width: progress + "%" }}
-              />
+              <div className="w-full max-w-sm text-center">
+                <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-navy text-white shadow-lg">
+                  <BookOpenCheck size={24} strokeWidth={1.8} />
+                </span>
+
+                <p className="mt-5 text-[10px] font-bold uppercase tracking-[.2em] text-[#c72c3b]">
+                  Preparing publication
+                </p>
+
+                <p className="mt-3 font-serif text-3xl text-navy">
+                  {progress}%
+                </p>
+
+                <div
+                  className="mt-5 h-2 overflow-hidden rounded-full bg-navy/10"
+                  role="progressbar"
+                  aria-label="Loading E-Year Book"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={progress}
+                >
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#c72c3b] via-[#df4756] to-gold transition-[width] duration-300 ease-out"
+                    style={{ width: progress + "%" }}
+                  />
+                </div>
+
+                <p className="mt-4 text-xs leading-5 text-slate-500">
+                  This is a large publication. Preparing the PDF viewer may take
+                  a moment.
+                </p>
+
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.12em] text-navy underline decoration-[#c72c3b]/40 underline-offset-4"
+                >
+                  Open directly instead
+                  <ArrowRight size={14} />
+                </a>
+              </div>
             </div>
+          )}
 
-            <p className="mt-4 text-xs leading-5 text-slate-500">
-              This is a large publication. Preparing the PDF viewer may take a
-              moment.
-            </p>
-
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.12em] text-navy underline decoration-[#c72c3b]/40 underline-offset-4"
-            >
-              Open directly instead
-              <ArrowRight size={14} />
-            </a>
-          </div>
-        </div>
-      )}
-
-      {/* {isLoaded && (
+          {/* {isLoaded && (
         <div className="absolute bottom-4 right-4 z-10 flex gap-2">
           <button
             type="button"

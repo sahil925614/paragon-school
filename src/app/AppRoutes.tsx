@@ -50,11 +50,12 @@ import { KidsInfrastructurePage } from '../features/kids/pages/KidsInfrastructur
 import { KidsMissionVisionPage } from '../features/kids/pages/KidsMissionVisionPage'
 import { KidsPresidentsDeskPage } from '../features/kids/pages/KidsPresidentsDeskPage'
 import { KidsPrincipalsDeskPage } from '../features/kids/pages/KidsPrincipalsDeskPage'
-import { SchoolSelectorPage } from '../pages/SchoolSelectorPage'
+// import { SchoolSelectorPage } from '../pages/SchoolSelectorPage'
 
 export function AppRoutes() {
   return <><ScrollToTop /><Routes>
-    <Route index element={<SchoolSelectorPage />} />
+    {/* <Route index element={<SchoolSelectorPage />} /> */}
+    <Route index element={<Navigate replace to="/school" />} />
     <Route path="school" element={<SchoolLayout />}>
       <Route index element={<SchoolHomePage />} />
       <Route path="german-language-teaching" element={<GermanLanguagePage />} />
