@@ -228,8 +228,9 @@ const recentActivities: ActivityVideo[] = [
 ========================================================= */
 
 export function HomePage() {
-  const [noticeDismissed, setNoticeDismissed] = useState(false);
-
+  
+const [noticeDismissed, setNoticeDismissed] = useState(false);
+const [noticeReopened, setNoticeReopened] = useState(false); 
   const activitiesSliderRef = useRef<HTMLDivElement>(null);
   const activitySlideIndexRef = useRef(0);
   const resultsSliderRef = useRef<HTMLDivElement>(null);
@@ -1014,76 +1015,280 @@ export function HomePage() {
       </section>
 
       {noticeBoard && (
-        <>
-          {!noticeDismissed ? (
-            <>
-              {/* Mobile/tablet: keep the notice in normal document flow so it never overlaps the hero/content. */}
-              <aside
-                aria-label="School notice board"
-                className="relative z-20 bg-[#fbfaf7] px-3 pb-2 pt-5 sm:px-6 lg:hidden"
+  <>
+    {!noticeDismissed ? (
+      <>
+        {/* =====================================================
+            MOBILE / TABLET NOTICE BOARD
+        ====================================================== */}
+
+        {!noticeReopened ? (
+          /*
+           * Initial page load:
+           * Keep the notice board inside normal document flow.
+           */
+          <aside
+            aria-label="School notice board"
+            className="relative z-20 bg-[#fbfaf7] px-3 pb-2 pt-5 sm:px-6 lg:hidden"
+          >
+            <div className="relative mx-auto w-full max-w-[520px]">
+              <button
+                type="button"
+                onClick={() => {
+                  setNoticeDismissed(true);
+                  setNoticeReopened(false);
+                }}
+                aria-label="Close notice board"
+                className="
+                  absolute
+                  -right-1
+                  -top-3
+                  z-30
+                  grid
+                  size-9
+                  place-items-center
+                  rounded-full
+                  border
+                  border-white/20
+                  bg-navy
+                  text-white
+                  shadow-lg
+                  transition
+                  hover:bg-[#c72c3b]
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-[#c72c3b]
+                  focus-visible:ring-offset-2
+                "
               >
-                <div className="relative mx-auto w-full max-w-[520px]">
-                  <button
-                    type="button"
-                    onClick={() => setNoticeDismissed(true)}
-                    aria-label="Close notice board"
-                    className="absolute -right-1 -top-3 z-30 grid size-9 place-items-center rounded-full border border-white/20 bg-navy text-white shadow-lg transition hover:bg-[#c72c3b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c72c3b] focus-visible:ring-offset-2"
-                  >
-                    <X size={16} />
-                  </button>
+                <X size={16} />
+              </button>
 
-                  <NoticeBoard
-                    title={descriptionToText(noticeBoard.title)}
-                    description={descriptionToText(noticeBoard.description)}
-                    notices={cardsFor(noticeBoard).map((card) => ({
-                      ...card,
-                      title: descriptionToText(card.title),
-                    }))}
-                  />
-                </div>
-              </aside>
+              <NoticeBoard
+                title={descriptionToText(noticeBoard.title)}
+                description={descriptionToText(noticeBoard.description)}
+                notices={cardsFor(noticeBoard).map((card) => ({
+                  ...card,
+                  title: descriptionToText(card.title),
+                }))}
+              />
+            </div>
+          </aside>
+        ) : (
+          /*
+           * Reopened on mobile/tablet:
+           *
+           * IMPORTANT:
+           * This is fixed to the CURRENT viewport instead of being
+           * rendered back near the Hero.
+           *
+           * So if the visitor is at Awards, Results, Welcome, etc.
+           * and taps the bell, the notice opens exactly where they are.
+           */
+          <aside
+            aria-label="School notice board"
+            className="
+              fixed
+              inset-x-3
+              bottom-20
+              z-[80]
+              mx-auto
+              w-auto
+              max-w-[520px]
 
-              {/* Desktop: fixed floating card, positioned slightly higher and visible until manually closed. */}
-              <aside
-                aria-label="School notice board"
-                className="fixed bottom-16 right-6 z-40 hidden w-[360px] lg:block xl:bottom-20 xl:right-8"
+              sm:inset-x-6
+              sm:bottom-20
+
+              lg:hidden
+            "
+          >
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setNoticeDismissed(true);
+                  setNoticeReopened(false);
+                }}
+                aria-label="Close notice board"
+                className="
+                  absolute
+                  -right-1
+                  -top-3
+                  z-[90]
+                  grid
+                  size-9
+                  place-items-center
+                  rounded-full
+                  border
+                  border-white/20
+                  bg-navy
+                  text-white
+                  shadow-lg
+                  transition
+                  hover:bg-[#c72c3b]
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-[#c72c3b]
+                  focus-visible:ring-offset-2
+                "
               >
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setNoticeDismissed(true)}
-                    aria-label="Close notice board"
-                    className="absolute -right-3 -top-3 z-50 grid size-9 place-items-center rounded-full border border-white/20 bg-navy text-white shadow-lg transition hover:bg-[#c72c3b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c72c3b] focus-visible:ring-offset-2"
-                  >
-                    <X size={16} />
-                  </button>
+                <X size={16} />
+              </button>
 
-                  <NoticeBoard
-                    title={descriptionToText(noticeBoard.title)}
-                    description={descriptionToText(noticeBoard.description)}
-                    notices={cardsFor(noticeBoard).map((card) => ({
-                      ...card,
-                      title: descriptionToText(card.title),
-                    }))}
-                  />
-                </div>
-              </aside>
-            </>
-          ) : (
-            /* Reopen control: stays available after the visitor closes the notice board. */
+              <div
+                className="
+                  max-h-[calc(100dvh-7rem)]
+                  overflow-y-auto
+                  overscroll-contain
+                  rounded-[20px]
+                  shadow-[0_22px_70px_-20px_rgba(16,42,67,.45)]
+                "
+              >
+                <NoticeBoard
+                  title={descriptionToText(noticeBoard.title)}
+                  description={descriptionToText(noticeBoard.description)}
+                  notices={cardsFor(noticeBoard).map((card) => ({
+                    ...card,
+                    title: descriptionToText(card.title),
+                  }))}
+                />
+              </div>
+            </div>
+          </aside>
+        )}
+
+        {/* =====================================================
+            DESKTOP NOTICE BOARD
+        ====================================================== */}
+
+        <aside
+          aria-label="School notice board"
+          className="
+            fixed
+            bottom-16
+            right-6
+            z-40
+            hidden
+            w-[360px]
+            lg:block
+            xl:bottom-20
+            xl:right-8
+          "
+        >
+          <div className="relative">
             <button
               type="button"
-              onClick={() => setNoticeDismissed(false)}
-              aria-label="Open notice board"
-              title="Open notice board"
-              className="fixed bottom-5 right-4 z-50 grid size-12 place-items-center rounded-full bg-navy text-white shadow-[0_12px_30px_-10px_rgba(16,42,67,.65)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#c72c3b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c72c3b] focus-visible:ring-offset-2 sm:bottom-6 sm:right-6 lg:bottom-16 lg:right-6 xl:bottom-20 xl:right-8"
+              onClick={() => {
+                setNoticeDismissed(true);
+                setNoticeReopened(false);
+              }}
+              aria-label="Close notice board"
+              className="
+                absolute
+                -right-3
+                -top-3
+                z-50
+                grid
+                size-9
+                place-items-center
+                rounded-full
+                border
+                border-white/20
+                bg-navy
+                text-white
+                shadow-lg
+                transition
+                hover:bg-[#c72c3b]
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-[#c72c3b]
+                focus-visible:ring-offset-2
+              "
             >
-              <BellRing size={20} />
-              <span className="absolute right-1.5 top-1.5 size-2 rounded-full border-2 border-navy bg-gold" />
+              <X size={16} />
             </button>
-          )}
-        </>
-      )}
+
+            <NoticeBoard
+              title={descriptionToText(noticeBoard.title)}
+              description={descriptionToText(noticeBoard.description)}
+              notices={cardsFor(noticeBoard).map((card) => ({
+                ...card,
+                title: descriptionToText(card.title),
+              }))}
+            />
+          </div>
+        </aside>
+      </>
+    ) : (
+      /* =====================================================
+          REOPEN NOTICE BUTTON
+      ====================================================== */
+
+      <button
+        type="button"
+        onClick={() => {
+          /*
+           * Mark this as a manual reopen.
+           *
+           * Mobile/tablet will now render the notice as a fixed
+           * viewport panel instead of putting it back near the Hero.
+           */
+          setNoticeReopened(true);
+          setNoticeDismissed(false);
+        }}
+        aria-label="Open notice board"
+        title="Open notice board"
+        className="
+          fixed
+          bottom-20
+          right-4
+          z-50
+          grid
+          size-12
+          place-items-center
+          rounded-full
+          bg-navy
+          text-white
+          shadow-[0_12px_30px_-10px_rgba(16,42,67,.65)]
+          transition
+          duration-300
+
+          hover:-translate-y-0.5
+          hover:bg-[#c72c3b]
+
+          focus-visible:outline-none
+          focus-visible:ring-2
+          focus-visible:ring-[#c72c3b]
+          focus-visible:ring-offset-2
+
+          sm:bottom-20
+          sm:right-6
+
+          lg:bottom-16
+          lg:right-6
+
+          xl:bottom-20
+          xl:right-8
+        "
+      >
+        <BellRing size={20} />
+
+        <span
+          className="
+            absolute
+            right-1.5
+            top-1.5
+            size-2
+            rounded-full
+            border-2
+            border-navy
+            bg-gold
+          "
+        />
+      </button>
+    )}
+  </>
+)}
 
       <section
         className="
@@ -1123,14 +1328,7 @@ export function HomePage() {
           <div
             aria-hidden="true"
             className="
-        mx-auto
-        my-12
-        flex
-        items-center
-        justify-center
-        gap-2
-        sm:my-14
-        lg:my-16
+        
       "
           >
             <span className="h-px w-10 bg-[#c72c3b]/35" />
